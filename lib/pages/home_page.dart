@@ -107,7 +107,7 @@ class HomePage extends StatelessWidget {
                           as ImageProvider,
               ),
             ),
-
+            const Text('kuy'),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
