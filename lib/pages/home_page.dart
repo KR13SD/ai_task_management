@@ -1,4 +1,3 @@
-import 'package:ai_task_project_manager/pages/setting/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
