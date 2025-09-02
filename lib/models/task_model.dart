@@ -9,6 +9,7 @@ class TaskModel {
   final String status;
   final String uid;
   final List<Map<String, dynamic>>? checklist;
+  final String? category;
 
   TaskModel({
     required this.id,
@@ -18,7 +19,8 @@ class TaskModel {
     required this.endDate,
     required this.status,
     required this.uid,
-    this.checklist,
+    required this.checklist,
+    this.category,
   });
 
   factory TaskModel.fromJson(String id, Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class TaskModel {
       checklist: json['checklist'] != null
           ? List<Map<String, dynamic>>.from(json['checklist'])
           : [],
+          category: json['category'] ?? 'General',
     );
   }
 
@@ -45,6 +48,7 @@ class TaskModel {
       'status': status,
       'uid': uid,
       'checklist': checklist ?? [],
+      'category': category ?? 'General',
     };
   }
 
@@ -58,6 +62,7 @@ class TaskModel {
     String? status,
     String? uid,
     List<Map<String, dynamic>>? checklist,
+    String? category,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -68,6 +73,7 @@ class TaskModel {
       status: status ?? this.status,
       uid: uid ?? this.uid,
       checklist: checklist ?? this.checklist,
+      category: category ?? this.category,
     );
   }
 }

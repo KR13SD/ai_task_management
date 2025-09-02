@@ -25,17 +25,18 @@ class AuthService {
 
     // อัปเดต Firestore
     await _db.collection('users').doc(uid).set({
-      'displayName': name,
+     'displayName': name,
       if (photoURL != null) 'photoURL': photoURL,
     }, SetOptions(merge: true));
-  }
+  } 
 
-  Future<UserCredential> registerWithEmail(String email, String password, String name) async {
+  Future<UserCredential> registerWithEmail(String email, String password, String name, {String language = 'en_US'}) async {
     final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
     // เก็บข้อมูลเพิ่มเติมใน Firestore
     await _db.collection('users').doc(cred.user!.uid).set({
       'name': name,
       'email': email,
+      'language': language,
       'created_at': FieldValue.serverTimestamp(),
     });
     return cred;

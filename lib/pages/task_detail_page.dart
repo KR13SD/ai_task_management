@@ -33,30 +33,38 @@ class _TaskDetailPageState extends State<TaskDetailPage>
 
   List<Map<String, dynamic>> checklist = [];
 
-  // Priority และ Status options พร้อมสีและไอคอน
+  // แก้ไข Priority options ให้ตรงกับ AI Import
   final Map<String, Map<String, dynamic>> priorityOptions = {
-    'Low': {'label': 'ต่ำ', 'color': Colors.green, 'icon': Icons.low_priority},
+    'Low': {
+      'label': 'low'.tr,
+      'color': Colors.green,
+      'icon': Icons.low_priority,
+    },
     'Medium': {
-      'label': 'ปานกลาง',
+      'label': 'medium'.tr,
       'color': Colors.orange,
       'icon': Icons.remove,
     },
-    'High': {'label': 'สูง', 'color': Colors.red, 'icon': Icons.priority_high},
+    'High': {
+      'label': 'high'.tr,
+      'color': Colors.red,
+      'icon': Icons.priority_high,
+    },
   };
 
   final Map<String, Map<String, dynamic>> statusOptions = {
     'todo': {
-      'label': 'รอดำเนินการ',
+      'label': 'pending'.tr,
       'color': Colors.grey,
       'icon': Icons.pending_actions,
     },
     'in_progress': {
-      'label': 'กำลังทำ',
+      'label': 'inprogress'.tr,
       'color': Colors.orange,
       'icon': Icons.work,
     },
     'done': {
-      'label': 'เสร็จแล้ว',
+      'label': 'completed'.tr,
       'color': Colors.green,
       'icon': Icons.task_alt,
     },
@@ -76,20 +84,27 @@ class _TaskDetailPageState extends State<TaskDetailPage>
 
     final latestTask = controller.findTaskById(widget.task.id) ?? widget.task;
 
-    // เก็บ checklist ของจริง
+    // แก้ไข checklist initialization
     originalChecklist = latestTask.checklist != null
         ? List<Map<String, dynamic>>.from(latestTask.checklist!)
         : [];
 
-    // สร้างสำเนาสำหรับ UI
-    editedChecklist = originalChecklist
-        .map((item) => Map<String, dynamic>.from(item))
-        .toList();
+    // สร้างสำเนาสำหรับ UI และตรวจสอบ field ที่จำเป็น
+    editedChecklist = originalChecklist.map((item) {
+      return {
+        'title': item['title'] ?? '',
+        'description': item['description'] ?? '',
+        'done': item['done'] ?? item['completed'] ?? false, // รองรับทั้ง done และ completed
+        'expanded': item['expanded'] ?? true,
+        'priority': item['priority'] ?? 'Medium',
+        'due_date': item['due_date'],
+      };
+    }).toList();
 
     titleController = TextEditingController(text: latestTask.title);
-    // minitasktitleController = TextEditingController(text: );
 
-    priority = latestTask.priority;
+    // ตรวจสอบและแปลง priority เป็นรูปแบบที่ถูกต้อง
+    priority = _normalizePriority(latestTask.priority);
     startDate = latestTask.startDate;
     endDate = latestTask.endDate;
     editedStartDate = startDate;
@@ -97,12 +112,30 @@ class _TaskDetailPageState extends State<TaskDetailPage>
     status = latestTask.status;
 
     // โหลด checklist จาก TaskModel
-    if (latestTask.checklist != null) {
-      checklist = List<Map<String, dynamic>>.from(latestTask.checklist!);
-      // เพิ่ม expanded flag
-      for (var item in checklist) {
-        item["expanded"] = true;
-      }
+    checklist = List<Map<String, dynamic>>.from(editedChecklist);
+  }
+
+  // เพิ่มฟังก์ชัน normalize priority
+  String _normalizePriority(String? priority) {
+    if (priority == null) return 'Medium';
+    
+    // ถ้าเป็นรูปแบบใหม่แล้ว ให้ return เลย
+    if (priorityOptions.containsKey(priority)) {
+      return priority;
+    }
+    
+    // แปลงจากรูปแบบเก่า
+    switch (priority.toLowerCase()) {
+      case 'high':
+      case 'สูง':
+        return 'High';
+      case 'low':
+      case 'ต่ำ':
+        return 'Low';
+      case 'medium':
+      case 'กลาง':
+      default:
+        return 'Medium';
     }
   }
 
@@ -145,7 +178,11 @@ class _TaskDetailPageState extends State<TaskDetailPage>
         "description": "",
         "done": false,
         "expanded": true,
+        "priority": "Medium",
+        "due_date": null,
       });
+      // อัปเดต checklist ด้วย
+      checklist = List<Map<String, dynamic>>.from(editedChecklist);
     });
   }
 
@@ -165,19 +202,20 @@ class _TaskDetailPageState extends State<TaskDetailPage>
               child: Icon(Icons.delete_outline, color: Colors.red[600]),
             ),
             const SizedBox(width: 12),
-            const Text('ยืนยันการลบ'),
+            Text('confirmdelete'.tr),
           ],
         ),
-        content: const Text('คุณต้องการลบงานย่อยนี้หรือไม่?'),
+        content: Text('dialogconfirmdelete'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('ยกเลิก'),
+            child: Text('cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () {
               setState(() {
                 editedChecklist.removeAt(index);
+                checklist = List<Map<String, dynamic>>.from(editedChecklist);
               });
               Navigator.pop(context);
             },
@@ -185,7 +223,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('ลบ'),
+            child: Text('deletetask'.tr),
           ),
         ],
       ),
@@ -194,9 +232,19 @@ class _TaskDetailPageState extends State<TaskDetailPage>
 
   Future<void> saveTask() async {
     if (titleController.text.trim().isEmpty) {
-      _showErrorSnackbar('กรุณาใส่ชื่องาน');
+      _showErrorSnackbar('entertaskname'.tr);
       return;
     }
+
+    // แปลง checklist กลับเป็นรูปแบบที่ TaskModel คาดหวัง
+    final cleanedChecklist = editedChecklist.map((item) => {
+      'title': item['title'] ?? '',
+      'description': item['description'] ?? '',
+      'done': item['done'] ?? false,
+      'expanded': item['expanded'] ?? true,
+      'priority': item['priority'] ?? 'Medium',
+      'due_date': item['due_date'],
+    }).toList();
 
     final updatedTask = widget.task.copyWith(
       title: titleController.text.trim(),
@@ -204,20 +252,20 @@ class _TaskDetailPageState extends State<TaskDetailPage>
       startDate: editedStartDate,
       endDate: editedEndDate,
       status: status,
-      checklist: editedChecklist,
+      checklist: cleanedChecklist,
     );
 
     try {
       await controller.updateTask(updatedTask);
-      _showSuccessSnackbar('บันทึกงานเรียบร้อยแล้ว');
+      _showSuccessSnackbar('tasksaved'.tr);
 
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(true);
         }
       });
     } catch (e) {
-      _showErrorSnackbar('ไม่สามารถบันทึกงานได้');
+      _showErrorSnackbar('cannotsave'.tr);
     }
   }
 
@@ -258,7 +306,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
   @override
   Widget build(BuildContext context) {
     final isDone = status == 'done';
-    final statusInfo = statusOptions[status]!;
+    final statusInfo = statusOptions[status] ?? statusOptions['todo']!;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -269,8 +317,8 @@ class _TaskDetailPageState extends State<TaskDetailPage>
             pinned: true,
             backgroundColor: statusInfo['color'],
             foregroundColor: Colors.white,
-            title: const Text(
-              'รายละเอียดงาน',
+            title: Text(
+              'taskdetails'.tr,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
@@ -281,7 +329,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
               IconButton(
                 onPressed: saveTask,
                 icon: const Icon(Icons.save_rounded),
-                tooltip: 'บันทึก',
+                tooltip: 'save'.tr,
               ),
             ],
           ),
@@ -295,7 +343,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                   children: [
                     // ชื่องาน
                     _buildSectionCard(
-                      title: 'ชื่องาน',
+                      title: 'taskname'.tr,
                       icon: Icons.title,
                       child: TextFormField(
                         controller: titleController,
@@ -306,7 +354,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                           color: isDone ? Colors.grey : Colors.black87,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'ใส่ชื่องาน...',
+                          hintText: 'insertname'.tr,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -328,7 +376,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                       children: [
                         Expanded(
                           child: _buildSectionCard(
-                            title: 'ความสำคัญ',
+                            title: 'priority'.tr,
                             icon: Icons.priority_high,
                             child: _buildPriorityDropdown(),
                           ),
@@ -336,7 +384,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildSectionCard(
-                            title: 'สถานะ',
+                            title: 'status'.tr,
                             icon: Icons.flag,
                             child: _buildStatusDropdown(),
                           ),
@@ -348,13 +396,13 @@ class _TaskDetailPageState extends State<TaskDetailPage>
 
                     // วันที่
                     _buildSectionCard(
-                      title: 'ช่วงเวลา',
+                      title: 'date'.tr,
                       icon: Icons.calendar_today,
                       child: Row(
                         children: [
                           Expanded(
                             child: _buildDateCard(
-                              'เริ่ม',
+                              'startdate'.tr,
                               editedStartDate,
                               true,
                             ),
@@ -371,7 +419,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                           const SizedBox(width: 12),
                           Expanded(
                             child: _buildDateCard(
-                              'สิ้นสุด',
+                              'duedate'.tr,
                               editedEndDate,
                               false,
                             ),
@@ -398,10 +446,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
         backgroundColor: statusInfo['color'],
         foregroundColor: Colors.white,
         icon: const Icon(Icons.save_rounded),
-        label: const Text(
-          'บันทึก',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
+        label: Text('save'.tr, style: TextStyle(fontWeight: FontWeight.w600)),
       ),
     );
   }
@@ -457,7 +502,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
     final isDone = status == 'done';
 
     return DropdownButtonFormField<String>(
-      value: priority,
+      value: priorityOptions.containsKey(priority) ? priority : 'Medium',
       isExpanded: true,
       decoration: InputDecoration(
         border: OutlineInputBorder(
@@ -499,7 +544,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
     final isDone = status == 'done';
 
     return DropdownButtonFormField<String>(
-      value: status,
+      value: statusOptions.containsKey(status) ? status : 'todo',
       isExpanded: true,
       decoration: InputDecoration(
         border: OutlineInputBorder(
@@ -589,7 +634,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
             if (isOverdue) ...[
               const SizedBox(height: 4),
               Text(
-                'เลยกำหนด',
+                'overdue'.tr,
                 style: TextStyle(
                   fontSize: 10,
                   color: Colors.red[600],
@@ -637,8 +682,8 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'งานย่อย',
+                      Text(
+                        'subtasks'.tr,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -647,7 +692,10 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                       ),
                       if (checklist.isNotEmpty)
                         Text(
-                          'เสร็จแล้ว $completedCount จาก ${checklist.length} งาน',
+                          'subtask_progress'.trParams({
+                            'completed': completedCount.toString(),
+                            'total': checklist.length.toString(),
+                          }),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -660,7 +708,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                   IconButton(
                     onPressed: addChecklistItem,
                     icon: const Icon(Icons.add_circle, color: Colors.blue),
-                    tooltip: 'เพิ่มงานย่อย',
+                    tooltip: 'addsubtask'.tr,
                   ),
               ],
             ),
@@ -690,29 +738,31 @@ class _TaskDetailPageState extends State<TaskDetailPage>
             }).toList(),
 
             if (checklist.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.checklist_outlined,
-                      size: 48,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'ยังไม่มีงานย่อย',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                    ),
-                    if (!isDone) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'เพิ่มงานย่อยเพื่อแบ่งงานให้ชัดเจนขึ้น',
-                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                        textAlign: TextAlign.center,
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.checklist_outlined,
+                        size: 48,
+                        color: Colors.grey[400],
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'nosubtasks'.tr,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      ),
+                      if (!isDone) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'addsubtask'.tr,
+                          style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
           ],
@@ -753,6 +803,8 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                     setState(() {
                       item["done"] = val ?? false;
                       if (val == true) item["expanded"] = false;
+                      // อัปเดต checklist ด้วย
+                      checklist = List<Map<String, dynamic>>.from(editedChecklist);
                     });
                   },
             shape: RoundedRectangleBorder(
@@ -770,8 +822,8 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                   : TextDecoration.none,
               fontWeight: FontWeight.w500,
             ),
-            decoration: const InputDecoration(
-              hintText: "ชื่องานย่อย...",
+            decoration: InputDecoration(
+              hintText: "subtaskname".tr,
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),
@@ -781,7 +833,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
               ? IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                   onPressed: () => removeChecklistItem(index),
-                  tooltip: 'ลบงานย่อย',
+                  tooltip: 'deletesubtask'.tr,
                 )
               : null,
           children: [
@@ -795,7 +847,7 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                 ),
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: "รายละเอียดงานย่อย...",
+                  hintText: "subtaskdetails".tr,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Colors.grey[300]!),

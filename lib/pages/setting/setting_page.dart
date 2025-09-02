@@ -12,8 +12,8 @@ class SettingPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          "การตั้งค่า",
+        title: Text(
+          "settings".tr,
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
         ),
         centerTitle: true,
@@ -29,13 +29,13 @@ class SettingPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Section
-            _buildSectionTitle("บัญชีผู้ใช้"),
+            _buildSectionTitle("account".tr),
             const SizedBox(height: 8),
             _buildSettingsCard([
               _buildSettingsTile(
                 icon: Icons.person_outline_rounded,
-                title: "ข้อมูลส่วนตัว",
-                subtitle: "จัดการข้อมูลโปรไฟล์ของคุณ",
+                title: "profile_info".tr,
+                subtitle: "profile_info_sub".tr,
                 onTap: () => Get.toNamed('/profile-detail'),
                 iconColor: Colors.blue,
                 iconBg: Colors.blue.shade50,
@@ -43,8 +43,8 @@ class SettingPage extends StatelessWidget {
               _buildDivider(),
               _buildSettingsTile(
                 icon: Icons.lock_outline_rounded,
-                title: "เปลี่ยนรหัสผ่าน",
-                subtitle: "อัปเดตรหัสผ่านเพื่อความปลอดภัย",
+                title: "change_password".tr,
+                subtitle: "change_password_sub".tr,
                 onTap: () => Get.toNamed('/change-password'),
                 iconColor: Colors.orange,
                 iconBg: Colors.orange.shade50,
@@ -52,8 +52,8 @@ class SettingPage extends StatelessWidget {
               _buildDivider(),
               _buildSettingsTile(
                 icon: Icons.logout_rounded,
-                title: "ออกจากระบบ",
-                subtitle: "ออกจากบัญชีผู้ใช้ปัจจุบัน",
+                title: "logout".tr,
+                subtitle: "confirm_logout".tr,
                 onTap: () => _showLogoutDialog(),
                 iconColor: Colors.red,
                 iconBg: Colors.red.shade50,
@@ -63,13 +63,13 @@ class SettingPage extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Support Section
-            _buildSectionTitle("การสนับสนุน"),
+            _buildSectionTitle("support".tr),
             const SizedBox(height: 8),
             _buildSettingsCard([
               _buildSettingsTile(
                 icon: Icons.support_agent_rounded,
-                title: "ติดต่อฝ่ายสนับสนุน",
-                subtitle: "ได้รับความช่วยเหลือและแก้ไขปัญหา",
+                title: "contact_support".tr,
+                subtitle: "contact_support_sub".tr,
                 onTap: () => Get.toNamed('/contact-support'),
                 iconColor: Colors.green,
                 iconBg: Colors.green.shade50,
@@ -77,8 +77,8 @@ class SettingPage extends StatelessWidget {
               _buildDivider(),
               _buildSettingsTile(
                 icon: Icons.info_outline_rounded,
-                title: "เกี่ยวกับแอป",
-                subtitle: "ข้อมูลเวอร์ชันและนโยบาย",
+                title: "about_app".tr,
+                subtitle: "about_app_sub".tr,
                 onTap: () => Get.toNamed('/about-app'),
                 iconColor: Colors.purple,
                 iconBg: Colors.purple.shade50,
@@ -88,40 +88,16 @@ class SettingPage extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Additional Settings Section
-            _buildSectionTitle("การตั้งค่าอื่นๆ"),
+            _buildSectionTitle("other_settings".tr),
             const SizedBox(height: 8),
             _buildSettingsCard([
               _buildSettingsTile(
-                icon: Icons.notifications_outlined,
-                title: "การแจ้งเตือน",
-                subtitle: "จัดการการแจ้งเตือนแอป",
-                onTap: () {
-                  // Add notification settings navigation
-                },
-                iconColor: Colors.red,
-                iconBg: Colors.red.shade50,
-              ),
-              _buildDivider(),
-              _buildSettingsTile(
                 icon: Icons.language_rounded,
-                title: "ภาษา",
-                subtitle: "เลือกภาษาที่ต้องการใช้",
-                onTap: () {
-                  // Add language settings navigation
-                },
+                title: "language".tr,
+                subtitle: "language_sub".tr,
+                onTap: () => Get.toNamed('/change-language'),
                 iconColor: Colors.indigo,
                 iconBg: Colors.indigo.shade50,
-              ),
-              _buildDivider(),
-              _buildSettingsTile(
-                icon: Icons.dark_mode_outlined,
-                title: "ธีมแอป",
-                subtitle: "เปลี่ยนรูปแบบการแสดงผล",
-                onTap: () {
-                  // Add theme settings navigation
-                },
-                iconColor: Colors.grey[700]!,
-                iconBg: Colors.grey.shade100,
               ),
             ]),
 
@@ -138,19 +114,19 @@ class SettingPage extends StatelessWidget {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          "ออกจากระบบ",
+        title: Text(
+          "logout".tr,
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
         ),
-        content: const Text(
-          "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?",
+          content: Text(
+          "confirmlogout".tr,
           style: TextStyle(fontSize: 14, color: Colors.black87),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
             child: Text(
-              "ยกเลิก",
+              "cancel".tr,
               style: TextStyle(
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
@@ -170,8 +146,8 @@ class SettingPage extends StatelessWidget {
               ),
               elevation: 0,
             ),
-            child: const Text(
-              "ออกจากระบบ",
+            child: Text(
+              "logout".tr,
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
           ),

@@ -33,6 +33,8 @@ class AuthController extends GetxController {
   var isNewPasswordHidden = true.obs;
   var isConfirmPasswordHidden = true.obs;
 
+  var language = 'en_US'.obs;
+
   User? get currentUser => _authService.currentUser;
 
   @override
@@ -127,6 +129,7 @@ class AuthController extends GetxController {
         final data = doc.data()!;
         name.value = data['name'] ?? '';
         photoURL.value = data['photoURL'] ?? '';
+        language.value = data['language'] ?? 'en_US';
       }
     });
   }
@@ -154,16 +157,32 @@ class AuthController extends GetxController {
   }
 
   Future<String> uploadProfileImage(File imageFile) async {
-    final user = currentUser;
-    if (user == null) throw Exception("No logged in user");
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception("No logged-in user");
 
     final storageRef = FirebaseStorage.instance
         .ref()
         .child('profile_images')
         .child('${user.uid}.jpg');
 
-    await storageRef.putFile(imageFile);
-    return await storageRef.getDownloadURL();
+    try {
+      // อัปโหลดไฟล์
+      final uploadTask = storageRef.putFile(imageFile);
+      final snapshot = await uploadTask;
+
+      // ตรวจสอบว่าสถานะ success
+      if (snapshot.state != TaskState.success) {
+        throw Exception("Upload failed");
+      }
+
+      // ดึง download URL
+      print('User UID: ${user.uid}');
+      print('Storage path: profile_images/${user.uid}.jpg');
+      final url = await storageRef.getDownloadURL();
+      return url;
+    } on FirebaseException catch (e) {
+      throw Exception("Firebase Storage error: ${e.message}");
+    }
   }
 
   Future<void> register() async {
@@ -181,7 +200,12 @@ class AuthController extends GetxController {
 
     try {
       isLoading.value = true;
-      await _authService.registerWithEmail(email, password, name);
+      await _authService.registerWithEmail(
+        email,
+        password,
+        name,
+        language: 'th_TH',
+      );
       _listenToUserProfile();
       Get.offAllNamed('/home');
     } on FirebaseAuthException catch (e) {
@@ -220,14 +244,14 @@ class AuthController extends GetxController {
     await _authService.signOut();
     Get.offAllNamed('/login');
     Get.snackbar(
-        "ออกจากระบบสำเร็จ",
-        "คุณได้ออกจากระบบเรียบร้อยแล้ว",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-        borderRadius: 8,
-        margin: const EdgeInsets.all(16),
-    );  
+      "ออกจากระบบสำเร็จ",
+      "คุณได้ออกจากระบบเรียบร้อยแล้ว",
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+      borderRadius: 8,
+      margin: const EdgeInsets.all(16),
+    );
   }
 }

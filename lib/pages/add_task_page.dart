@@ -11,13 +11,15 @@ class AddTaskPage extends StatefulWidget {
   State<AddTaskPage> createState() => _AddTaskPageState();
 }
 
-class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin {
-  final DashboardController dashboardController = Get.find<DashboardController>();
+class _AddTaskPageState extends State<AddTaskPage>
+    with TickerProviderStateMixin {
+  final DashboardController dashboardController =
+      Get.find<DashboardController>();
   final TextEditingController titleController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  
+
   String priority = 'Low';
   DateTime startDate = DateTime.now();
   DateTime endDate = DateTime.now().add(const Duration(days: 1));
@@ -81,7 +83,7 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
       };
 
       await FirebaseFirestore.instance.collection('tasks').add(newTaskData);
-      
+
       // Show success message and navigate back immediately
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -90,7 +92,9 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
               const Icon(Icons.check_circle, color: Colors.white),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('สร้าง Task "${titleController.text.trim()}" เรียบร้อยแล้ว'),
+                child: Text(
+                  'สร้าง Task "${titleController.text.trim()}" เรียบร้อยแล้ว',
+                ),
               ),
             ],
           ),
@@ -100,7 +104,7 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
-      
+
       // Force navigate back using the most reliable method
       if (mounted) {
         Navigator.of(context).pop(true);
@@ -138,15 +142,15 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: priorityColors[priority],
-            ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: priorityColors[priority]),
           ),
           child: child!,
         );
       },
     );
-    
+
     if (picked != null) {
       setState(() {
         if (isStart) {
@@ -186,14 +190,14 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
           children: [
             Icon(Icons.warning_amber, color: Colors.orange.shade600),
             const SizedBox(width: 8),
-            const Text('ยืนยันการลบ'),
+            Text('confirmdeletesu'.tr),
           ],
         ),
-        content: const Text('คุณต้องการลบงานย่อยนี้ใช่หรือไม่?'),
+        content: Text('confirmdeletesubtask'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('ยกเลิก'),
+            child: Text('cancle'.tr),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -201,12 +205,12 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('ลบ'),
+            child: Text('delete'.tr),
           ),
         ],
       ),
     );
-    
+
     if (confirm == true) {
       setState(() {
         checklist.removeAt(index);
@@ -216,8 +220,19 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
 
   String _formatDate(DateTime date) {
     final months = [
-      '', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+      '',
+      'jan'.tr,
+      'feb'.tr,
+      'mar'.tr,
+      'apr'.tr,
+      'may'.tr,
+      'jun'.tr,
+      'jul'.tr,
+      'aug'.tr,
+      'sep'.tr,
+      'oct'.tr,
+      'nov'.tr,
+      'dec'.tr,
     ];
     return '${date.day} ${months[date.month]} ${date.year + 543}';
   }
@@ -230,12 +245,9 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
         elevation: 0,
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
-        title: const Text(
-          'เพิ่ม Task ใหม่',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
+        title: Text(
+          'addnewtask'.tr,
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
         ),
         centerTitle: true,
         actions: [
@@ -260,7 +272,9 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
               // Task Title Card
               Card(
                 elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -281,8 +295,8 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Text(
-                            'รายละเอียด Task',
+                          Text(
+                            'taskdetails'.tr,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -294,8 +308,8 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                       TextFormField(
                         controller: titleController,
                         decoration: InputDecoration(
-                          labelText: 'ชื่อ Task *',
-                          hintText: 'กรอกชื่อ Task ที่ต้องการทำ',
+                          labelText: 'taskname'.tr,
+                          hintText: 'hintnametask'.tr,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -305,7 +319,7 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'กรุณากรอกชื่อ Task';
+                            return 'inserttaskname'.tr;
                           }
                           return null;
                         },
@@ -321,7 +335,9 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
               // Priority and Dates Card
               Card(
                 elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -342,8 +358,8 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Text(
-                            'การตั้งค่า',
+                          Text(
+                            'settings'.tr,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -354,8 +370,8 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                       const SizedBox(height: 16),
 
                       // Priority Selector
-                      const Text(
-                        'ระดับความสำคัญ',
+                      Text(
+                        'priority'.tr,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -369,15 +385,19 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                           border: Border.all(color: Colors.grey.shade300),
                         ),
                         child: Row(
-                          children: ['Low', 'Medium', 'High'].map((p) {
+                          children: ['low'.tr, 'medium'.tr, 'high'.tr].map((p) {
                             final isSelected = priority == p;
                             return Expanded(
                               child: GestureDetector(
                                 onTap: () => setState(() => priority = p),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? priorityColors[p] : Colors.transparent,
+                                    color: isSelected
+                                        ? priorityColors[p]
+                                        : Colors.transparent,
                                     borderRadius: BorderRadius.circular(11),
                                   ),
                                   child: Row(
@@ -385,14 +405,18 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                                     children: [
                                       Icon(
                                         priorityIcons[p],
-                                        color: isSelected ? Colors.white : priorityColors[p],
+                                        color: isSelected
+                                            ? Colors.white
+                                            : priorityColors[p],
                                         size: 18,
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
                                         p,
                                         style: TextStyle(
-                                          color: isSelected ? Colors.white : priorityColors[p],
+                                          color: isSelected
+                                              ? Colors.white
+                                              : priorityColors[p],
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -418,18 +442,23 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                                 decoration: BoxDecoration(
                                   color: Colors.grey.shade50,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(Icons.calendar_today, 
-                                             size: 16, color: Colors.grey.shade600),
+                                        Icon(
+                                          Icons.calendar_today,
+                                          size: 16,
+                                          color: Colors.grey.shade600,
+                                        ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          'วันที่เริ่ม',
+                                          'startdate'.tr,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey.shade600,
@@ -460,18 +489,23 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                                 decoration: BoxDecoration(
                                   color: Colors.grey.shade50,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(Icons.event, 
-                                             size: 16, color: Colors.grey.shade600),
+                                        Icon(
+                                          Icons.event,
+                                          size: 16,
+                                          color: Colors.grey.shade600,
+                                        ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          'วันที่สิ้นสุด',
+                                          'duedate'.tr,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey.shade600,
@@ -505,7 +539,9 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
               // Checklist Card
               Card(
                 elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -532,15 +568,17 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Task ย่อย',
+                                  Text(
+                                    'subtasks'.tr,
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   Text(
-                                    '${checklist.length} รายการ',
+                                    'list_item'.trParams({
+                                      'count': checklist.length.toString(),
+                                    }),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey.shade600,
@@ -553,7 +591,7 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                           ElevatedButton.icon(
                             onPressed: addChecklistItem,
                             icon: const Icon(Icons.add, size: 18),
-                            label: const Text('เพิ่ม'),
+                            label: Text('add'.tr),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.purple,
                               foregroundColor: Colors.white,
@@ -581,14 +619,14 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'ยังไม่มี Task ย่อย',
+                                'nosubtasks'.tr,
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
                                   fontSize: 14,
                                 ),
                               ),
                               Text(
-                                'แตะปุ่ม "เพิ่ม" เพื่อเพิ่ม Task ย่อย',
+                                'guidelinessubtasks'.tr,
                                 style: TextStyle(
                                   color: Colors.grey.shade500,
                                   fontSize: 12,
@@ -608,12 +646,12 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: item["done"] == true 
-                                    ? Colors.green.shade200 
+                                color: item["done"] == true
+                                    ? Colors.green.shade200
                                     : Colors.grey.shade300,
                               ),
-                              color: item["done"] == true 
-                                  ? Colors.green.shade50 
+                              color: item["done"] == true
+                                  ? Colors.green.shade50
                                   : Colors.white,
                             ),
                             child: ExpansionTile(
@@ -637,15 +675,16 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                               ),
                               title: TextField(
                                 readOnly: item["done"] ?? false,
-                                decoration: const InputDecoration(
-                                  hintText: "ชื่องานย่อย",
+                                decoration: InputDecoration(
+                                  hintText: "subtaskname".tr,
                                   border: InputBorder.none,
                                   isDense: true,
                                 ),
-                                controller: TextEditingController(text: item["title"])
-                                  ..selection = TextSelection.collapsed(
-                                    offset: item["title"]?.length ?? 0,
-                                  ),
+                                controller:
+                                    TextEditingController(text: item["title"])
+                                      ..selection = TextSelection.collapsed(
+                                        offset: item["title"]?.length ?? 0,
+                                      ),
                                 style: TextStyle(
                                   color: (item["done"] ?? false)
                                       ? Colors.grey
@@ -662,8 +701,11 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, 
-                                                   color: Colors.red, size: 20),
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
+                                      size: 20,
+                                    ),
                                     onPressed: () => removeChecklistItem(index),
                                   ),
                                   RotationTransition(
@@ -676,11 +718,16 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                               ),
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    16,
+                                  ),
                                   child: TextField(
                                     readOnly: item["done"] ?? false,
                                     decoration: InputDecoration(
-                                      hintText: "รายละเอียดงานย่อย (ไม่จำเป็น)",
+                                      hintText: "subtaskdetails".tr,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -697,7 +744,8 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                                           : Colors.black,
                                       fontSize: 14,
                                     ),
-                                    onChanged: (val) => item["description"] = val,
+                                    onChanged: (val) =>
+                                        item["description"] = val,
                                   ),
                                 ),
                               ],
@@ -732,7 +780,7 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
             height: 56,
             child: ElevatedButton.icon(
               onPressed: _isLoading ? null : saveTask,
-              icon: _isLoading 
+              icon: _isLoading
                   ? const SizedBox(
                       width: 20,
                       height: 20,
@@ -743,7 +791,7 @@ class _AddTaskPageState extends State<AddTaskPage> with TickerProviderStateMixin
                     )
                   : const Icon(Icons.save, size: 22),
               label: Text(
-                _isLoading ? 'กำลังบันทึก...' : 'บันทึก Task',
+                _isLoading ? 'saving'.tr : 'savetask'.tr,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

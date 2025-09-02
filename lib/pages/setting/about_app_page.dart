@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
@@ -11,14 +12,14 @@ class AboutAppPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text("AI Task Manager",
+          children:  [
+            Text("ai-task-manager".tr,
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            Text("Version: 1.0.0"),
+            Text("version".tr),
             SizedBox(height: 10),
             Text(
-              "This app helps you manage tasks, track progress, and analyze productivity with AI-powered insights.",
+              "about_app_desc".tr,
             ),
           ],
         ),

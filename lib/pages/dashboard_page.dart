@@ -1,4 +1,5 @@
 import 'package:ai_task_project_manager/pages/task_detail_page.dart';
+import 'package:ai_task_project_manager/pages/task_view_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +10,7 @@ import '../../models/task_model.dart';
 const Color primaryColor = Color(0xFF3B82F6);
 
 class DashboardPage extends StatelessWidget {
-  final DashboardController controller = Get.put(DashboardController());
+  final DashboardController controller = Get.find<DashboardController>();
 
   DashboardPage({super.key});
 
@@ -27,13 +28,25 @@ class DashboardPage extends StatelessWidget {
     }
   }
 
+  List<TaskModel> _sortTasksByPriority(List<TaskModel> tasks) {
+    final priorityOrder = {"high": 1, "medium": 2, "low": 3};
+
+    tasks.sort((a, b) {
+      final aPriority = priorityOrder[a.priority.toLowerCase()] ?? 4;
+      final bPriority = priorityOrder[b.priority.toLowerCase()] ?? 4;
+      return aPriority.compareTo(bPriority);
+    });
+
+    return tasks;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text(
-          'Dashboard',
+        title: Text(
+          'dashboard'.tr,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: primaryColor,
@@ -51,22 +64,22 @@ class DashboardPage extends StatelessWidget {
           children: [
             _buildTaskListSection(
               context: context,
-              title: "งานสำหรับวันนี้",
+              title: "todaytasks".tr,
               tasks: controller.tasksToday,
-              emptyMessage: "ไม่มีงานสำหรับวันนี้ 🤙🏽",
+              emptyMessage: "notasksfortoday".tr,
             ),
             const SizedBox(height: 24),
             _buildTaskListSection(
               context: context,
-              title: "งานที่กำลังจะมาถึง (3 วัน)",
+              title: "taskincoming(3days)".tr,
               tasks: controller.tasksUpcoming,
-              emptyMessage: "ไม่มีงานที่กำลังจะมาถึง",
+              emptyMessage: "noupcomingtasks".tr,
             ),
             _buildTaskListSection(
               context: context,
-              title: "งานค้าง (Overdue)",
+              title: "taskoverdue".tr,
               tasks: controller.tasksOverdue,
-              emptyMessage: "ไม่มีงานค้าง",
+              emptyMessage: "nooverduetasks".tr,
             ),
           ],
         );
@@ -79,13 +92,6 @@ class DashboardPage extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        FloatingActionButton(
-          heroTag: 'addTask',
-          backgroundColor: primaryColor,
-          onPressed: () => Get.toNamed('/tasks'),
-          child: const Icon(Icons.add, color: Colors.white),
-          tooltip: 'เพิ่ม Task ใหม่',
-        ),
         const SizedBox(height: 10),
         FloatingActionButton(
           heroTag: 'importAI',
@@ -104,6 +110,7 @@ class DashboardPage extends StatelessWidget {
     required List<TaskModel> tasks,
     required String emptyMessage,
   }) {
+    final sortedTasks = _sortTasksByPriority(List.from(tasks));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -117,16 +124,17 @@ class DashboardPage extends StatelessWidget {
         const SizedBox(height: 12),
         tasks.isEmpty
             ? _buildEmptyState(emptyMessage)
-            : ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
+            : ListView.builder(
                 shrinkWrap: true,
-                itemCount: tasks.length,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: sortedTasks.length,
                 itemBuilder: (context, index) {
-                  final task = tasks[index];
-                  return _taskCard(task);
+                  final task = sortedTasks[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _taskCard(task),
+                  );
                 },
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
               ),
       ],
     );
@@ -137,6 +145,7 @@ class DashboardPage extends StatelessWidget {
     final colors = _getPriorityColors(task.priority);
     final bgColor = colors['bg']!;
     final fgColor = colors['fg']!;
+    final locale = Get.locale?.languageCode ?? 'en';
 
     return Card(
       color: bgColor,
@@ -148,7 +157,7 @@ class DashboardPage extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Get.to(TaskDetailPage(task: task), arguments: task.id);
+          Get.to(TaskViewPage(task: task), arguments: task.id);
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -188,7 +197,8 @@ class DashboardPage extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${DateFormat('d MMM').format(task.startDate)} - ${DateFormat('d MMM yyyy').format(task.endDate)}',
+                        '${DateFormat('d MMM', locale).format(task.startDate)} - '
+                        '${DateFormat('d MMM yyyy', locale).format(task.endDate)}',
                         style: TextStyle(
                           color: fgColor.withOpacity(0.7),
                           fontSize: 14,

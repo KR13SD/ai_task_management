@@ -1,3 +1,4 @@
+import 'package:ai_task_project_manager/services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -15,27 +16,60 @@ class TaskListPage extends StatefulWidget {
 
 class _TaskListPageState extends State<TaskListPage> {
   final DashboardController controller = Get.find<DashboardController>();
-  late DateFormat dateFormat;
+  final formattedDate = ''.obs;
 
   @override
   void initState() {
     super.initState();
-    _initializeDateFormatting();
+    _initDateFormatting();
+    
+    final service = Get.find<LocalizationService>();
+    ever(service.currentLocale, (_) => _initDateFormatting());
   }
 
-  void _initializeDateFormatting() async {
-    await initializeDateFormatting('th', null);
-    setState(() {
-      dateFormat = DateFormat('dd MMM yyyy', 'th');
-    });
+  Future<void> _initDateFormatting() async {
+    final locale = Get.locale?.toString() ?? 'th_TH';
+    await initializeDateFormatting(locale, null);
+    _updateFormattedDate(DateTime.now());
+  }
+
+  void _updateFormattedDate(DateTime date) {
+    final locale = Get.locale?.toString() ?? 'th_TH';
+    final formatter = DateFormat('dd MMM yyyy', locale);
+    formattedDate.value = formatter.format(date);
   }
 
   final List<Map<String, Object>> statusOptions = [
-    {'key': 'all', 'label': 'ทั้งหมด', 'icon': Icons.list_alt, 'color': Colors.blue},
-    {'key': 'todo', 'label': 'รอดำเนินการ', 'icon': Icons.pending_actions, 'color': Colors.grey},
-    {'key': 'in_progress', 'label': 'กำลังทำ', 'icon': Icons.work, 'color': Colors.orange},
-    {'key': 'done', 'label': 'เสร็จแล้ว', 'icon': Icons.task_alt, 'color': Colors.green},
-    {'key': 'overdue', 'label': 'เลยกำหนด', 'icon': Icons.warning, 'color': Colors.red},
+    {
+      'key': 'all',
+      'label': 'all'.tr,
+      'icon': Icons.list_alt,
+      'color': Colors.blue,
+    },
+    {
+      'key': 'todo',
+      'label': 'pending'.tr,
+      'icon': Icons.pending_actions,
+      'color': Colors.grey,
+    },
+    {
+      'key': 'in_progress',
+      'label': 'inprogress'.tr,
+      'icon': Icons.work,
+      'color': Colors.orange,
+    },
+    {
+      'key': 'done',
+      'label': 'completed'.tr,
+      'icon': Icons.task_alt,
+      'color': Colors.green,
+    },
+    {
+      'key': 'overdue',
+      'label': 'overdue'.tr,
+      'icon': Icons.warning,
+      'color': Colors.red,
+    },
   ];
 
   String selectedStatus = 'all';
@@ -66,14 +100,35 @@ class _TaskListPageState extends State<TaskListPage> {
     }
   }
 
+  List<TaskModel> _sortTasksByStatus(List<TaskModel> tasks) {
+  final now = DateTime.now();
+  const priority = {
+    'in_progress': 1,
+    'todo': 2,
+    'overdue': 3,
+    'done': 4,
+  };
+
+  return tasks..sort((a, b) {
+    String statusA = a.status.toLowerCase();
+    String statusB = b.status.toLowerCase();
+
+    // ตรวจสอบ overdue
+    if (statusA != 'done' && a.endDate.isBefore(now)) statusA = 'overdue';
+    if (statusB != 'done' && b.endDate.isBefore(now)) statusB = 'overdue';
+
+    return (priority[statusA] ?? 99).compareTo(priority[statusB] ?? 99);
+  });
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.green[300],
         foregroundColor: Colors.white,
-        title: Text('รายการ Task'),
+        title: Text('tasklist'.tr),
       ),
       body: CustomScrollView(
         slivers: [
@@ -91,7 +146,7 @@ class _TaskListPageState extends State<TaskListPage> {
                   final IconData icon = option['icon'] as IconData;
                   final Color color = option['color'] as Color;
                   final isSelected = selectedStatus == key;
-                  
+
                   return Container(
                     margin: const EdgeInsets.only(right: 12),
                     child: FilterChip(
@@ -102,20 +157,18 @@ class _TaskListPageState extends State<TaskListPage> {
                           Icon(
                             icon,
                             size: 18,
-                            color: isSelected 
-                              ? Colors.white 
-                              : color,
+                            color: isSelected ? Colors.white : color,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             label,
                             style: TextStyle(
-                              color: isSelected 
-                                ? Colors.white 
-                                : Colors.grey[700],
-                              fontWeight: isSelected 
-                                ? FontWeight.w600 
-                                : FontWeight.normal,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.grey[700],
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
                             ),
                           ),
                         ],
@@ -135,21 +188,21 @@ class _TaskListPageState extends State<TaskListPage> {
           ),
           Obx(() {
             if (controller.isLoading.value) {
-              return const SliverFillRemaining(
+              return SliverFillRemaining(
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CircularProgressIndicator(),
                       SizedBox(height: 16),
-                      Text('กำลังโหลดข้อมูล...'),
+                      Text('loading'.tr),
                     ],
                   ),
                 ),
               );
             }
 
-            final tasks = filteredTasks(selectedStatus);
+            final tasks = _sortTasksByStatus(filteredTasks(selectedStatus));
 
             if (tasks.isEmpty) {
               return SliverFillRemaining(
@@ -164,7 +217,7 @@ class _TaskListPageState extends State<TaskListPage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'ไม่มีงานในหมวดนี้',
+                        'notasksinthislist'.tr,
                         style: TextStyle(
                           fontSize: 18,
                           color: Colors.grey[600],
@@ -173,10 +226,8 @@ class _TaskListPageState extends State<TaskListPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'เริ่มสร้างงานใหม่กันเถอะ',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                        ),
+                        'startcreatetask'.tr,
+                        style: TextStyle(color: Colors.grey[500]),
                       ),
                     ],
                   ),
@@ -185,33 +236,32 @@ class _TaskListPageState extends State<TaskListPage> {
             }
 
             return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final task = tasks[index];
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      top: 6,
-                      bottom: index == tasks.length - 1 ? 100 : 6, // เพิ่มระยะห่างด้านล่างสำหรับ card สุดท้าย
-                    ),
-                    child: _buildModernTaskCard(task),
-                  );
-                },
-                childCount: tasks.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final task = tasks[index];
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 6,
+                    bottom: index == tasks.length - 1
+                        ? 100
+                        : 6, // เพิ่มระยะห่างด้านล่างสำหรับ card สุดท้าย
+                  ),
+                  child: _buildModernTaskCard(task),
+                );
+              }, childCount: tasks.length),
             );
           }),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.toNamed('/addtasks'),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.green[300],
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text(
-          'เพิ่มงานใหม่',
+        label: Text(
+          'addtask'.tr,
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -221,12 +271,12 @@ class _TaskListPageState extends State<TaskListPage> {
   Widget _buildModernTaskCard(TaskModel task) {
     final isDone = task.status.toLowerCase() == 'done';
     final isOverdue = !isDone && task.endDate.isBefore(DateTime.now());
-    
+
     // กำหนดสีและไอคอนตามสถานะ
     Color statusColor;
     Color cardColor;
     IconData statusIcon;
-    
+
     switch (task.status.toLowerCase()) {
       case 'todo':
         statusColor = Colors.grey[600]!;
@@ -259,10 +309,7 @@ class _TaskListPageState extends State<TaskListPage> {
       shadowColor: statusColor.withOpacity(0.2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: statusColor.withOpacity(0.2),
-          width: 1,
-        ),
+        side: BorderSide(color: statusColor.withOpacity(0.2), width: 1),
       ),
       color: cardColor,
       child: InkWell(
@@ -282,11 +329,7 @@ class _TaskListPageState extends State<TaskListPage> {
                       color: statusColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      statusIcon,
-                      size: 20,
-                      color: statusColor,
-                    ),
+                    child: Icon(statusIcon, size: 20, color: statusColor),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -299,7 +342,9 @@ class _TaskListPageState extends State<TaskListPage> {
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.grey[800],
-                            decoration: isDone ? TextDecoration.lineThrough : null,
+                            decoration: isDone
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -328,15 +373,15 @@ class _TaskListPageState extends State<TaskListPage> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Date information
               Row(
                 children: [
                   Expanded(
                     child: _buildDateInfo(
-                      'เริ่ม',
+                      'startdate'.tr,
                       task.startDate,
                       Icons.play_arrow,
                       Colors.green,
@@ -345,7 +390,7 @@ class _TaskListPageState extends State<TaskListPage> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildDateInfo(
-                      'สิ้นสุด',
+                      'duedate'.tr,
                       task.endDate,
                       Icons.flag,
                       isOverdue ? Colors.red : Colors.blue,
@@ -353,7 +398,7 @@ class _TaskListPageState extends State<TaskListPage> {
                   ),
                 ],
               ),
-              
+
               if (isOverdue) ...[
                 const SizedBox(height: 12),
                 Container(
@@ -368,7 +413,7 @@ class _TaskListPageState extends State<TaskListPage> {
                       Icon(Icons.warning, color: Colors.red[600], size: 16),
                       const SizedBox(width: 8),
                       Text(
-                        'เลยกำหนดแล้ว',
+                        'out of date'.tr,
                         style: TextStyle(
                           color: Colors.red[600],
                           fontSize: 12,
@@ -379,9 +424,9 @@ class _TaskListPageState extends State<TaskListPage> {
                   ),
                 ),
               ],
-              
+
               const SizedBox(height: 16),
-              
+
               // Action buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -391,14 +436,14 @@ class _TaskListPageState extends State<TaskListPage> {
                       icon: Icons.play_arrow,
                       color: Colors.orange,
                       onPressed: () => _confirmUpdateStatus(task),
-                      tooltip: 'เริ่มทำงาน',
+                      tooltip: 'starttask'.tr,
                     ),
                     const SizedBox(width: 8),
                     _buildActionButton(
                       icon: Icons.check,
                       color: Colors.green,
                       onPressed: () => _confirmMarkDone(task),
-                      tooltip: 'เสร็จแล้ว',
+                      tooltip: 'endtask'.tr,
                     ),
                     const SizedBox(width: 8),
                   ],
@@ -406,7 +451,7 @@ class _TaskListPageState extends State<TaskListPage> {
                     icon: Icons.delete_outline,
                     color: Colors.red,
                     onPressed: () => _confirmDelete(task),
-                    tooltip: 'ลบงาน',
+                    tooltip: 'deletetask'.tr,
                   ),
                 ],
               ),
@@ -417,34 +462,42 @@ class _TaskListPageState extends State<TaskListPage> {
     );
   }
 
-  Widget _buildDateInfo(String label, DateTime date, IconData icon, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 6),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+  Widget _buildDateInfo(
+    String label,
+    DateTime date,
+    IconData icon,
+    Color color,
+  ) {
+      final locale = Get.locale?.toString() ?? 'en_US';
+      final formatter = DateFormat('dd MMM yyyy', locale);
+
+      return Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            Text(
-              dateFormat?.format(date) ?? DateFormat('dd/MM/yyyy').format(date),
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[800],
-                fontWeight: FontWeight.w600,
+              Text(
+                formatter.format(date),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[800],
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    );
+            ],
+          ),
+        ],
+      );
   }
 
   Widget _buildActionButton({
@@ -474,11 +527,11 @@ class _TaskListPageState extends State<TaskListPage> {
   String _getStatusLabel(String status) {
     switch (status.toLowerCase()) {
       case 'todo':
-        return 'รอดำเนินการ';
+        return 'pending'.tr;
       case 'in_progress':
-        return 'กำลังทำ';
+        return 'inprogress'.tr;
       case 'done':
-        return 'เสร็จแล้ว';
+        return 'completed'.tr;
       default:
         return status;
     }
@@ -488,9 +541,7 @@ class _TaskListPageState extends State<TaskListPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Container(
@@ -502,16 +553,14 @@ class _TaskListPageState extends State<TaskListPage> {
               child: Icon(Icons.task_alt, color: Colors.green[600]),
             ),
             const SizedBox(width: 12),
-            const Text('ยืนยันการเปลี่ยนสถานะ'),
+            Text('confirmchangestatus'.tr),
           ],
         ),
-        content: Text(
-          'คุณต้องการเปลี่ยนสถานะ "${task.title}" เป็น เสร็จแล้ว หรือไม่?',
-        ),
+        content: Text('dialogconfirmstatus'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('ยกเลิก'),
+            child: Text('cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () {
@@ -522,7 +571,7 @@ class _TaskListPageState extends State<TaskListPage> {
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
             ),
-            child: const Text('ยืนยัน'),
+            child: Text('confirm'.tr),
           ),
         ],
       ),
@@ -533,9 +582,7 @@ class _TaskListPageState extends State<TaskListPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Container(
@@ -547,14 +594,14 @@ class _TaskListPageState extends State<TaskListPage> {
               child: Icon(Icons.delete_outline, color: Colors.red[600]),
             ),
             const SizedBox(width: 12),
-            const Text('ยืนยันการลบ'),
+            Text('comfirmdelete'.tr),
           ],
         ),
-        content: Text('คุณแน่ใจว่าต้องการลบ "${task.title}" หรือไม่?'),
+        content: Text('dialogconfirmdelete'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('ยกเลิก'),
+            child: Text('cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () {
@@ -565,7 +612,7 @@ class _TaskListPageState extends State<TaskListPage> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('ลบ'),
+            child: Text('confirm'.tr),
           ),
         ],
       ),
@@ -576,9 +623,7 @@ class _TaskListPageState extends State<TaskListPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Container(
@@ -590,16 +635,14 @@ class _TaskListPageState extends State<TaskListPage> {
               child: Icon(Icons.work, color: Colors.orange[600]),
             ),
             const SizedBox(width: 12),
-            const Text('เริ่มทำงาน'),
+            Text('starttask'.tr),
           ],
         ),
-        content: Text(
-          'คุณแน่ใจว่าต้องการเปลี่ยนสถานะเป็น กำลังทำ หรือไม่?',
-        ),
+        content: Text('confirmchangestatus'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('ยกเลิก'),
+            child: Text('cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () {
@@ -610,7 +653,7 @@ class _TaskListPageState extends State<TaskListPage> {
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
             ),
-            child: const Text('ยืนยัน'),
+            child: Text('confirm'.tr),
           ),
         ],
       ),

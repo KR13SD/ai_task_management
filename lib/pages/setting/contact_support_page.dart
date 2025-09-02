@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -79,8 +80,8 @@ class _ContactSupportPageState extends State<ContactSupportPage>
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text(
-          "ติดต่อฝ่ายสนับสนุน",
+        title: Text(
+          "contact_support".tr,
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: colorScheme.surfaceVariant.withOpacity(0.3),
@@ -118,7 +119,7 @@ class _ContactSupportPageState extends State<ContactSupportPage>
             ),
             const SizedBox(height: 32),
             Text(
-              "ส่งข้อความสำเร็จ!",
+              "success_title".tr,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
@@ -127,7 +128,7 @@ class _ContactSupportPageState extends State<ContactSupportPage>
             ),
             const SizedBox(height: 16),
             Text(
-              "ขอบคุณที่ติดต่อเรา เราจะตอบกลับให้เร็วที่สุด",
+              "success_message".tr,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -137,7 +138,7 @@ class _ContactSupportPageState extends State<ContactSupportPage>
             FilledButton.icon(
               onPressed: _resetForm,
               icon: const Icon(Icons.refresh),
-              label: const Text("ส่งข้อความใหม่"),
+              label: Text("send_new_message".tr),
             ),
           ],
         ),
@@ -170,7 +171,7 @@ class _ContactSupportPageState extends State<ContactSupportPage>
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      "เรายินดีรับฟังความคิดเห็นจากคุณ",
+                      "form_header_title".tr,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onPrimaryContainer,
@@ -179,7 +180,7 @@ class _ContactSupportPageState extends State<ContactSupportPage>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "หากคุณมีปัญหาหรือข้อเสนอแนะ กรุณากรอกแบบฟอร์มด้านล่าง",
+                      "form_header_subtitle".tr,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onPrimaryContainer.withOpacity(0.8),
                       ),
@@ -195,12 +196,12 @@ class _ContactSupportPageState extends State<ContactSupportPage>
             // Form Fields
             _buildTextField(
               controller: nameCtrl,
-              label: "ชื่อ",
-              hint: "กรุณาใส่ชื่อของคุณ",
+              label: "name".tr,
+              hint: "name_hint".tr,
               icon: Icons.person_outline,
               validator: (value) {
                 if (value?.isEmpty ?? true) {
-                  return 'กรุณาใส่ชื่อ';
+                  return 'please_enter_name'.tr;
                 }
                 return null;
               },
@@ -210,16 +211,16 @@ class _ContactSupportPageState extends State<ContactSupportPage>
             
             _buildTextField(
               controller: emailCtrl,
-              label: "อีเมล",
-              hint: "กรุณาใส่อีเมลของคุณ",
+              label: "email".tr,
+              hint: "email_hint".tr,
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value?.isEmpty ?? true) {
-                  return 'กรุณาใส่อีเมล';
+                  return 'please_enter_email'.tr;
                 }
                 if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value!)) {
-                  return 'รูปแบบอีเมลไม่ถูกต้อง';
+                  return 'please_enter_valid_email'.tr;
                 }
                 return null;
               },
@@ -229,16 +230,16 @@ class _ContactSupportPageState extends State<ContactSupportPage>
             
             _buildTextField(
               controller: messageCtrl,
-              label: "ข้อความ",
-              hint: "อธิบายปัญหาหรือข้อเสนอแนะของคุณ...",
+              label: "message".tr,
+              hint: "message_hint".tr,
               icon: Icons.message_outlined,
               maxLines: 5,
               validator: (value) {
                 if (value?.isEmpty ?? true) {
-                  return 'กรุณาใส่ข้อความ';
+                  return 'please_enter_message'.tr;
                 }
                 if (value!.length < 10) {
-                  return 'ข้อความต้องมีอย่างน้อย 10 ตัวอักษร';
+                  return 'message_too_short'.tr;
                 }
                 return null;
               },
@@ -263,7 +264,7 @@ class _ContactSupportPageState extends State<ContactSupportPage>
                   )
                 : const Icon(Icons.send),
               label: Text(
-                _isLoading ? "กำลังส่ง..." : "ส่งข้อความ",
+                _isLoading ? "sending".tr : "send_message".tr,
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
@@ -285,7 +286,7 @@ class _ContactSupportPageState extends State<ContactSupportPage>
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        "เราจะตอบกลับภายใน 24 ชั่วโมง",
+                        "form_info_text".tr,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -377,11 +378,11 @@ class _ContactSupportPageState extends State<ContactSupportPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
                 Icon(Icons.error_outline, color: Colors.white),
                 SizedBox(width: 12),
-                Text('เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองอีกครั้ง'),
+                Text('send_error'.tr),
               ],
             ),
             backgroundColor: Theme.of(context).colorScheme.error,

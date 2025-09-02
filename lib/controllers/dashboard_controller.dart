@@ -10,6 +10,8 @@ class DashboardController extends GetxController {
   final RxList<TaskModel> allTasks = <TaskModel>[].obs;
   final RxBool isLoading = true.obs;
 
+  FirebaseAuth get auth => _auth;
+
   RxInt todoCount = 0.obs;
   RxInt inProgressCount = 0.obs;
   RxInt doneCount = 0.obs;

@@ -16,8 +16,8 @@ class ChangePasswordPage extends GetView<AuthController> {
           ? const Color(0xFF0F0F0F) 
           : const Color(0xFFFAFAFA),
       appBar: AppBar(
-        title: const Text(
-          "Change Password",
+        title: Text(
+          "change_password".tr,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -88,7 +88,7 @@ class ChangePasswordPage extends GetView<AuthController> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          "Secure Your Account",
+                          "secure_account".tr,
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
@@ -98,7 +98,7 @@ class ChangePasswordPage extends GetView<AuthController> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          "Update your password to keep your account safe and secure",
+                          "secure_account_desc".tr,
                           style: TextStyle(
                             fontSize: 16,
                             color: isDark 
@@ -115,12 +115,12 @@ class ChangePasswordPage extends GetView<AuthController> {
                   _buildModernTextField(
                     controller: controller.currentPasswordController,
                     isObscured: controller.isCurrentPasswordHidden,
-                    label: "Current Password",
-                    hint: "Enter your current password",
+                    label: "current_password".tr,
+                    hint: "current_password_hint".tr,
                     icon: Icons.lock_outline_rounded,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your current password';
+                        return 'pleaseenteryourpassword'.tr;
                       }
                       return null;
                     },
@@ -133,12 +133,12 @@ class ChangePasswordPage extends GetView<AuthController> {
                   _buildModernTextField(
                     controller: controller.newPasswordController,
                     isObscured: controller.isNewPasswordHidden,
-                    label: "New Password",
-                    hint: "Enter your new password",
+                    label: "new_password".tr,
+                    hint: "new_password_hint".tr,
                     icon: Icons.lock_person_outlined,
                     validator: (value) {
                       if (value == null || value.length < 6) {
-                        return 'Password must be at least 6 characters long';
+                        return 'new_password_error'.tr;
                       }
                       return null;
                     },
@@ -151,12 +151,12 @@ class ChangePasswordPage extends GetView<AuthController> {
                   _buildModernTextField(
                     controller: controller.ConfirmNewPasswordController,
                     isObscured: controller.isConfirmPasswordHidden,
-                    label: "Confirm New Password",
-                    hint: "Re-enter your new password",
+                    label: "confirm_new_password".tr,
+                    hint: "confirm_new_password_hint".tr,
                     icon: Icons.verified_user_outlined,
                     validator: (value) {
                       if (value != controller.newPasswordController.text) {
-                        return 'Passwords do not match';
+                        return 'confirm_password_error'.tr;
                       }
                       return null;
                     },
@@ -191,7 +191,7 @@ class ChangePasswordPage extends GetView<AuthController> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              "Password Tips",
+                              "password_tips".tr,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -201,9 +201,9 @@ class ChangePasswordPage extends GetView<AuthController> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _buildPasswordTip("Use at least 8 characters", isDark),
-                        _buildPasswordTip("Include numbers and symbols", isDark),
-                        _buildPasswordTip("Mix uppercase and lowercase letters", isDark),
+                        _buildPasswordTip("tip_length".tr, isDark),
+                        _buildPasswordTip("tip_symbols".tr, isDark),
+                        _buildPasswordTip("tip_case".tr, isDark),
                       ],
                     ),
                   ),
@@ -274,8 +274,8 @@ class ChangePasswordPage extends GetView<AuthController> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
-                                        const Text(
-                                          'Update Password',
+                                        Text(
+                                          'update_password'.tr,
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
