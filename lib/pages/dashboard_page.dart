@@ -15,16 +15,40 @@ class DashboardPage extends StatelessWidget {
   DashboardPage({super.key});
 
   // ฟังก์ชันสำหรับกำหนดสีตาม Priority
-  Map<String, Color> _getPriorityColors(String priority) {
+  Map<String, dynamic> _getPriorityColors(String priority) {
     switch (priority.toLowerCase()) {
       case 'high':
-        return {'bg': Colors.red.shade50, 'fg': Colors.red.shade800};
+        return {
+          'gradient': [Colors.red.shade400, Colors.red.shade600],
+          'bg': Colors.red.shade50,
+          'fg': Colors.red.shade700,
+          'shadow': Colors.red.shade200,
+          'icon': Icons.priority_high,
+        };
       case 'medium':
-        return {'bg': Colors.orange.shade50, 'fg': Colors.orange.shade800};
+        return {
+          'gradient': [Colors.orange.shade400, Colors.orange.shade600],
+          'bg': Colors.orange.shade50,
+          'fg': Colors.orange.shade700,
+          'shadow': Colors.orange.shade200,
+          'icon': Icons.remove,
+        };
       case 'low':
-        return {'bg': Colors.green.shade50, 'fg': Colors.green.shade800};
+        return {
+          'gradient': [Colors.green.shade400, Colors.green.shade600],
+          'bg': Colors.green.shade50,
+          'fg': Colors.green.shade700,
+          'shadow': Colors.green.shade200,
+          'icon': Icons.keyboard_arrow_down,
+        };
       default:
-        return {'bg': Colors.grey.shade100, 'fg': Colors.grey.shade800};
+        return {
+          'gradient': [Colors.grey.shade400, Colors.grey.shade600],
+          'bg': Colors.grey.shade100,
+          'fg': Colors.grey.shade700,
+          'shadow': Colors.grey.shade200,
+          'icon': Icons.horizontal_rule,
+        };
     }
   }
 
@@ -43,64 +67,198 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text(
-          'dashboard'.tr,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: _buildAppBar(),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(
-            child: CircularProgressIndicator(color: primaryColor),
+            child: CircularProgressIndicator(
+              color: primaryColor,
+              strokeWidth: 3,
+            ),
           );
         }
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-          children: [
-            _buildTaskListSection(
-              context: context,
-              title: "todaytasks".tr,
-              tasks: controller.tasksToday,
-              emptyMessage: "notasksfortoday".tr,
-            ),
-            const SizedBox(height: 24),
-            _buildTaskListSection(
-              context: context,
-              title: "taskincoming(3days)".tr,
-              tasks: controller.tasksUpcoming,
-              emptyMessage: "noupcomingtasks".tr,
-            ),
-            _buildTaskListSection(
-              context: context,
-              title: "taskoverdue".tr,
-              tasks: controller.tasksOverdue,
-              emptyMessage: "nooverduetasks".tr,
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _buildStatsCards(),
+                    const SizedBox(height: 32),
+                    _buildTaskListSection(
+                      context: context,
+                      title: "todaytasks".tr,
+                      tasks: controller.tasksToday,
+                      emptyMessage: "notasksfortoday".tr,
+                      icon: Icons.today,
+                      gradientColors: [
+                        Colors.blue.shade400,
+                        Colors.blue.shade600,
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                    _buildTaskListSection(
+                      context: context,
+                      title: "taskincoming(3days)".tr,
+                      tasks: controller.tasksUpcoming,
+                      emptyMessage: "noupcomingtasks".tr,
+                      icon: Icons.upcoming,
+                      gradientColors: [
+                        Colors.purple.shade400,
+                        Colors.purple.shade600,
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                    _buildTaskListSection(
+                      context: context,
+                      title: "taskoverdue".tr,
+                      tasks: controller.tasksOverdue,
+                      emptyMessage: "nooverduetasks".tr,
+                      icon: Icons.schedule,
+                      gradientColors: [
+                        Colors.red.shade400,
+                        Colors.red.shade600,
+                      ],
+                    ),
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
             ),
           ],
         );
       }),
-      floatingActionButton: _buildFloatingActionButtons(),
+      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
-  Widget _buildFloatingActionButtons() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
+  PreferredSizeWidget _buildAppBar() {
+  return AppBar(
+    title: Text(
+      'dashboard'.tr,
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 24,
+        color: Colors.white, // สีขาวให้อ่านชัดบน gradient
+      ),
+    ),
+    leading: IconButton(
+      onPressed: () => Get.back(),
+      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+    ),
+    foregroundColor: Colors.white,
+    elevation: 0,
+    flexibleSpace: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.blue.shade400,
+            Colors.blue.shade600,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+    ),
+  );
+}
+
+
+  Widget _buildStatsCards() {
+    return Row(
       children: [
-        const SizedBox(height: 10),
-        FloatingActionButton(
-          heroTag: 'importAI',
-          backgroundColor: primaryColor,
-          onPressed: () => Get.toNamed('/ai-import'),
-          child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
-          tooltip: 'นำเข้าด้วย AI',
+        Expanded(
+          child: _buildStatCard(
+            title: "Today",
+            count: controller.tasksToday.length,
+            icon: Icons.today,
+            colors: [Colors.blue.shade400, Colors.blue.shade600],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildStatCard(
+            title: "Upcoming",
+            count: controller.tasksUpcoming.length,
+            icon: Icons.upcoming,
+            colors: [Colors.purple.shade400, Colors.purple.shade600],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildStatCard(
+            title: "Overdue",
+            count: controller.tasksOverdue.length,
+            icon: Icons.schedule,
+            colors: [Colors.red.shade400, Colors.red.shade600],
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String title,
+    required int count,
+    required IconData icon,
+    required List<Color> colors,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colors.first.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.white, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            count.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return FloatingActionButton.extended(
+      heroTag: 'importAI',
+      backgroundColor: primaryColor,
+      onPressed: () => Get.toNamed('/ai-import'),
+      icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+      label: const Text(
+        'AI Import',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      elevation: 8,
     );
   }
 
@@ -109,19 +267,62 @@ class DashboardPage extends StatelessWidget {
     required String title,
     required List<TaskModel> tasks,
     required String emptyMessage,
+    required IconData icon,
+    required List<Color> gradientColors,
   }) {
     final sortedTasks = _sortTasksByPriority(List.from(tasks));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: gradientColors),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: gradientColors.first.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  tasks.length.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         tasks.isEmpty
             ? _buildEmptyState(emptyMessage)
             : ListView.builder(
@@ -140,129 +341,193 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  // Widget สำหรับแสดงการ์ด Task ที่ปรับปรุงสีตาม Priority
   Widget _taskCard(TaskModel task) {
     final colors = _getPriorityColors(task.priority);
-    final bgColor = colors['bg']!;
-    final fgColor = colors['fg']!;
+    final gradientColors = colors['gradient'] as List<Color>;
+    final bgColor = colors['bg'] as Color;
+    final fgColor = colors['fg'] as Color;
+    final shadowColor = colors['shadow'] as Color;
+    final priorityIcon = colors['icon'] as IconData;
     final locale = Get.locale?.languageCode ?? 'en';
 
-    return Card(
-      color: bgColor,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: fgColor.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: -5,
+          ),
+        ],
       ),
-      elevation: 0,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          Get.to(TaskViewPage(task: task), arguments: task.id);
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      task.title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                        color: fgColor,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            Get.to(() => TaskViewPage(task: task), arguments: task.id);
+          },
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: gradientColors,
+                        ),
+                        borderRadius: BorderRadius.circular(3),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildPriorityChip(task.priority),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Divider(height: 1, color: fgColor.withOpacity(0.2)),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 16,
-                        color: fgColor.withOpacity(0.7),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_outlined,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${DateFormat('d MMM', locale).format(task.startDate)} - '
+                                '${DateFormat('d MMM yyyy', locale).format(task.endDate)}',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${DateFormat('d MMM', locale).format(task.startDate)} - '
-                        '${DateFormat('d MMM yyyy', locale).format(task.endDate)}',
-                        style: TextStyle(
-                          color: fgColor.withOpacity(0.7),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Icon(Icons.chevron_right, color: fgColor.withOpacity(0.7)),
-                ],
-              ),
-            ],
+                    ),
+                    _buildAdvancedPriorityChip(
+                      task.priority,
+                      priorityIcon,
+                      gradientColors,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPriorityChip(String priority) {
-    final colors = _getPriorityColors(priority);
-    final fgColor = colors['fg']!;
-
+  Widget _buildAdvancedPriorityChip(
+    String priority,
+    IconData icon,
+    List<Color> colors,
+  ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: fgColor.withOpacity(0.5)),
+        gradient: LinearGradient(colors: colors),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colors.first.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Text(
-        priority,
-        style: TextStyle(
-          color: fgColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.white, size: 20),
+          const SizedBox(height: 4),
+          Text(
+            priority.toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildEmptyState(String message) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 40),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: -5,
+          ),
+        ],
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.green.shade400, Colors.green.shade600],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.green.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(
               Icons.check_circle_outline_rounded,
-              size: 48,
-              color: Colors.green,
+              size: 40,
+              color: Colors.white,
             ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -287,7 +287,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "dispalyname".tr,
+          "displayname".tr,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -309,7 +309,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage>
           child: TextField(
             controller: _nameController,
             decoration: InputDecoration(
-              hintText: "Enter your display name",
+              hintText: "enterName".tr,
               hintStyle: TextStyle(color: Colors.grey.shade400),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -337,7 +337,7 @@ class _ProfileDetailPageState extends State<ProfileDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Choose Avatar",
+          "chooseAvatar".tr,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,

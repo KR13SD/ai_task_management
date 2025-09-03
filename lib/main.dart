@@ -29,55 +29,69 @@ import 'pages/ai_import_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await GetStorage.init();
+
+  // (ถ้าต้องใช้รูปแบบวันที่ไทยด้วย)
   await initializeDateFormatting('en_US', null);
-  
+  await initializeDateFormatting('th_TH', null);
+
+  // ✅ ใช้ LocalizationService instance เดียวทั้งแอพ
+  final ls = Get.put(LocalizationService(), permanent: true);
+
+  // โหลด locale ที่เคยเซฟไว้ แล้วอัปเดตให้ทั้งแอพตั้งแต่เริ่ม
+  final saved = ls.getSavedLocale() ?? LocalizationService.locale;
+  Get.updateLocale(saved);
+  ls.currentLocale.value = saved; // sync ให้ Obx รับรู้ค่าเริ่มต้น
 
   Get.put(AuthController());
   Get.put(DashboardController());
-  Get.put(LocalizationService(), permanent: true);
 
-  runApp(const MyApp());
+  runApp(MyApp(ls: ls));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final LocalizationService ls;
+  const MyApp({super.key, required this.ls});
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'AI Task Manager',
-      debugShowCheckedModeBanner: false,
-      translations: LocalizationService(),
-      locale: LocalizationService.locale,
-      fallbackLocale: LocalizationService.fallbackLocale,
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        textTheme: GoogleFonts.kanitTextTheme(Theme.of(context).textTheme),
-      ),
-      initialRoute: '/splash',
-      getPages: [
-        GetPage(name: '/splash', page: () => const SplashPage()),
-        GetPage(name: '/login', page: () => LoginPage()),
-        GetPage(name: '/register', page: () => RegisterPage()),
-        GetPage(name: '/home', page: () => HomePage()),
-        GetPage(name: '/dashboard', page: () => DashboardPage()),
-        GetPage(name: '/tasks', page: () => TaskListPage()),
-        GetPage(name: '/ai-import', page: () => AiImportPage()),
-        GetPage(name: '/addtasks', page: () => const AddTaskPage()),
-        GetPage(name: '/analytic', page: () => AnalyticsPage()),
-        GetPage(name: '/notifications', page: () => NotificationsPage()),
+    // ✅ ผูก GetMaterialApp กับ currentLocale แบบ reactive
+    return Obx(() {
+      return GetMaterialApp(
+        title: 'AI Task Manager',
+        debugShowCheckedModeBanner: false,
 
-        // Setting
-        GetPage(name: '/settings', page: () => SettingPage()),
-        GetPage(name: '/profile-detail', page: () => ProfileDetailPage()),
-        GetPage(
-          name: '/change-password',
-          page: () => const ChangePasswordPage(),
+        // ✅ ใช้ instance เดียว ไม่สร้าง LocalizationService() ใหม่
+        translations: ls,
+        locale: ls.currentLocale.value,
+        fallbackLocale: LocalizationService.fallbackLocale,
+
+        theme: ThemeData(
+          primarySwatch: Colors.deepPurple,
+          textTheme: GoogleFonts.kanitTextTheme(Theme.of(context).textTheme),
         ),
-        GetPage(name: '/about-app', page: () => const AboutAppPage()),
-        GetPage(name: '/contact-support', page: () => ContactSupportPage()),
-        GetPage(name: '/change-language', page: () => LanguagePage()),
-      ],
-    );
+        initialRoute: '/splash',
+        getPages: [
+          GetPage(name: '/splash', page: () => const SplashPage()),
+          GetPage(name: '/login', page: () => LoginPage()),
+          GetPage(name: '/register', page: () => RegisterPage()),
+          GetPage(name: '/home', page: () => HomePage()),
+          GetPage(name: '/dashboard', page: () => DashboardPage()),
+          GetPage(name: '/tasks', page: () => TaskListPage()),
+          GetPage(name: '/ai-import', page: () => AiImportPage()),
+          GetPage(name: '/addtasks', page: () => const AddTaskPage()),
+          GetPage(name: '/analytic', page: () => AnalyticsPage()),
+          GetPage(name: '/notifications', page: () => NotificationsPage()),
+
+          // Setting
+          GetPage(name: '/settings', page: () => SettingPage()),
+          GetPage(name: '/profile-detail', page: () => ProfileDetailPage()),
+          GetPage(name: '/change-password', page: () => const ChangePasswordPage()),
+          GetPage(name: '/about-app', page: () => const AboutAppPage()),
+          GetPage(name: '/contact-support', page: () => ContactSupportPage()),
+          GetPage(name: '/change-language', page: () => LanguagePage()),
+        ],
+      );
+    });
   }
 }

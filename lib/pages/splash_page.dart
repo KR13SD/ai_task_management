@@ -90,11 +90,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              primaryColor,
-              secondaryColor,
-              accentColor,
-            ],
+            colors: [primaryColor, secondaryColor, accentColor],
             stops: [0.0, 0.6, 1.0],
           ),
         ),
@@ -176,8 +172,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                           const SizedBox(height: 30),
 
                           // App Title
-                          const Text(
-                            'AI Task Manager',
+                          Text(
+                            'appName'.tr,
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -196,7 +192,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 
                           // Subtitle
                           Text(
-                            'Smart. Simple. Efficient.',
+                            'appSubtitle'.tr,
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.white.withOpacity(0.9),
@@ -227,7 +223,10 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                     decoration: const BoxDecoration(
                                       shape: BoxShape.circle,
                                       gradient: LinearGradient(
-                                        colors: [Colors.white, Colors.transparent],
+                                        colors: [
+                                          Colors.white,
+                                          Colors.transparent,
+                                        ],
                                         stops: [0.0, 0.7],
                                       ),
                                     ),
@@ -243,7 +242,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                             animation: _fadeAnimation,
                             builder: (context, child) {
                               return Text(
-                                'Initializing...',
+                                'initializing'.tr,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white.withOpacity(0.8),
@@ -268,7 +267,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                 opacity: _fadeAnimation,
                 child: Center(
                   child: Text(
-                    'Version 1.0.0',
+                    'version'.tr,
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.white.withOpacity(0.6),

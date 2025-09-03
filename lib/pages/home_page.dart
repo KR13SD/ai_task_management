@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -304,13 +305,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Hi, $name 👋",
+                AutoSizeText(
+                  "hiUser".trParams({'name': name}),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
+                  maxLines: 1,
+                  minFontSize: 12,
+                  overflow:  TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
                 Text(

@@ -5,7 +5,8 @@ import '../services/localization_service.dart';
 class LanguagePage extends StatelessWidget {
   LanguagePage({super.key});
 
-  final LocalizationService localizationService = Get.find<LocalizationService>();
+  final LocalizationService localizationService =
+      Get.find<LocalizationService>();
 
   @override
   Widget build(BuildContext context) {
@@ -17,10 +18,7 @@ class LanguagePage extends StatelessWidget {
         foregroundColor: Colors.black87,
         title: Text(
           'languageheader'.tr,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
       ),
@@ -46,23 +44,24 @@ class LanguagePage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'languageDescription'.tr,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Current Language Display
                 Obx(() {
                   final currentLocale = localizationService.currentLocale.value;
-                  final currentIndex = LocalizationService.locales.indexOf(currentLocale);
-                  final currentLangName = currentIndex >= 0 
-                      ? LocalizationService.langs[currentIndex] 
+                  final currentIndex = LocalizationService.locales.indexOf(
+                    currentLocale,
+                  );
+                  final currentLangName = currentIndex >= 0
+                      ? LocalizationService.langs[currentIndex]
                       : 'Unknown';
                   final currentFlag = _getFlagEmoji(currentLocale);
-                  final currentNativeName = _getLanguageNativeName(currentLocale);
-                  
+                  final currentNativeName = _getLanguageNativeName(
+                    currentLocale,
+                  );
+
                   return Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -80,7 +79,9 @@ class LanguagePage extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withOpacity(0.2),
+                            color: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Center(
@@ -161,7 +162,7 @@ class LanguagePage extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Language List
           Expanded(
             child: Container(
@@ -184,8 +185,8 @@ class LanguagePage extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected 
-                              ? Theme.of(context).primaryColor 
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
                               : Colors.grey[300]!,
                           width: isSelected ? 2 : 1,
                         ),
@@ -206,8 +207,10 @@ class LanguagePage extends StatelessWidget {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: isSelected 
-                                ? Theme.of(context).primaryColor.withOpacity(0.1)
+                            color: isSelected
+                                ? Theme.of(
+                                    context,
+                                  ).primaryColor.withOpacity(0.1)
                                 : Colors.grey[100],
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -222,8 +225,10 @@ class LanguagePage extends StatelessWidget {
                           lang,
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                            color: isSelected 
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: isSelected
                                 ? Theme.of(context).primaryColor
                                 : Colors.black87,
                           ),
@@ -241,11 +246,11 @@ class LanguagePage extends StatelessWidget {
                           height: 24,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isSelected 
-                                ? Theme.of(context).primaryColor 
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
                                 : Colors.transparent,
                             border: Border.all(
-                              color: isSelected 
+                              color: isSelected
                                   ? Theme.of(context).primaryColor
                                   : Colors.grey[400]!,
                               width: 2,
@@ -260,11 +265,8 @@ class LanguagePage extends StatelessWidget {
                               : null,
                         ),
                         onTap: () {
-                          // เมื่อกดเลือกภาษา
                           final localeCode = "${locale.languageCode}_${locale.countryCode}";
                           localizationService.changeLocale(localeCode);
-                          
-                          // Optional: Show feedback
                           _showLanguageChangedFeedback(context, lang);
                         },
                       ),
@@ -274,7 +276,6 @@ class LanguagePage extends StatelessWidget {
               ),
             ),
           ),
-           
         ],
       ),
     );
@@ -295,17 +296,14 @@ class LanguagePage extends StatelessWidget {
       'RU': '🇷🇺',
       'GB': '🇬🇧',
     };
-    
+
     return flagMap[locale.countryCode] ?? '🌐';
   }
 
   String _getLanguageNativeName(Locale locale) {
     // Map locale codes to native language names
-    const nativeNames = {
-      'en_US': 'English',
-      'th_TH': 'ภาษาไทย',
-    };
-    
+    const nativeNames = {'en_US': 'English', 'th_TH': 'ภาษาไทย'};
+
     final localeCode = '${locale.languageCode}_${locale.countryCode}';
     return nativeNames[localeCode] ?? locale.languageCode.toUpperCase();
   }
@@ -322,9 +320,7 @@ class LanguagePage extends StatelessWidget {
         ),
         backgroundColor: Colors.green[600],
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
       ),
