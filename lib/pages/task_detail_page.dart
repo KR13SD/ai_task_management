@@ -94,7 +94,10 @@ class _TaskDetailPageState extends State<TaskDetailPage>
       return {
         'title': item['title'] ?? '',
         'description': item['description'] ?? '',
-        'done': item['done'] ?? item['completed'] ?? false, // รองรับทั้ง done และ completed
+        'done':
+            item['done'] ??
+            item['completed'] ??
+            false, // รองรับทั้ง done และ completed
         'expanded': item['expanded'] ?? true,
         'priority': item['priority'] ?? 'Medium',
         'due_date': item['due_date'],
@@ -118,12 +121,12 @@ class _TaskDetailPageState extends State<TaskDetailPage>
   // เพิ่มฟังก์ชัน normalize priority
   String _normalizePriority(String? priority) {
     if (priority == null) return 'Medium';
-    
+
     // ถ้าเป็นรูปแบบใหม่แล้ว ให้ return เลย
     if (priorityOptions.containsKey(priority)) {
       return priority;
     }
-    
+
     // แปลงจากรูปแบบเก่า
     switch (priority.toLowerCase()) {
       case 'high':
@@ -237,14 +240,18 @@ class _TaskDetailPageState extends State<TaskDetailPage>
     }
 
     // แปลง checklist กลับเป็นรูปแบบที่ TaskModel คาดหวัง
-    final cleanedChecklist = editedChecklist.map((item) => {
-      'title': item['title'] ?? '',
-      'description': item['description'] ?? '',
-      'done': item['done'] ?? false,
-      'expanded': item['expanded'] ?? true,
-      'priority': item['priority'] ?? 'Medium',
-      'due_date': item['due_date'],
-    }).toList();
+    final cleanedChecklist = editedChecklist
+        .map(
+          (item) => {
+            'title': item['title'] ?? '',
+            'description': item['description'] ?? '',
+            'done': item['done'] ?? false,
+            'expanded': item['expanded'] ?? true,
+            'priority': item['priority'] ?? 'Medium',
+            'due_date': item['due_date'],
+          },
+        )
+        .toList();
 
     final updatedTask = widget.task.copyWith(
       title: titleController.text.trim(),
@@ -313,26 +320,27 @@ class _TaskDetailPageState extends State<TaskDetailPage>
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            floating: false,
             pinned: true,
+            automaticallyImplyLeading: false,
             backgroundColor: statusInfo['color'],
             foregroundColor: Colors.white,
-            title: Text(
-              'taskdetails'.tr,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.white,
-              ),
+            elevation: 0,
+            toolbarHeight: 86,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
             ),
+            titleSpacing: 0,
+            title: _buildStatusHeaderBar(statusInfo),
             actions: [
               IconButton(
                 onPressed: saveTask,
                 icon: const Icon(Icons.save_rounded),
                 tooltip: 'save'.tr,
+                color: Colors.white,
               ),
             ],
           ),
+
           SliverToBoxAdapter(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -757,7 +765,10 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                         const SizedBox(height: 4),
                         Text(
                           'addsubtask'.tr,
-                          style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -804,7 +815,9 @@ class _TaskDetailPageState extends State<TaskDetailPage>
                       item["done"] = val ?? false;
                       if (val == true) item["expanded"] = false;
                       // อัปเดต checklist ด้วย
-                      checklist = List<Map<String, dynamic>>.from(editedChecklist);
+                      checklist = List<Map<String, dynamic>>.from(
+                        editedChecklist,
+                      );
                     });
                   },
             shape: RoundedRectangleBorder(
@@ -863,6 +876,73 @@ class _TaskDetailPageState extends State<TaskDetailPage>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatusHeaderBar(Map<String, dynamic> statusInfo) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // ปุ่ม Back
+          IconButton(
+            onPressed: () => Get.back(),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+            ),
+          ),
+
+          // กล่องไอคอนโปร่ง (เหมือนหน้าอื่น)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+            ),
+            child: const Icon(
+              Icons.description_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+
+          const SizedBox(width: 14),
+
+          // ชื่อใหญ่ + ซับไตเติล เหมือนหน้าอื่น
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'taskdetails'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+                Text(
+                  // ใช้ label ของสถานะเพื่อสื่อสี/สถานะตรงกัน
+                  '${'status'.tr}: ${statusOptions[status]?['label'] ?? '—'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

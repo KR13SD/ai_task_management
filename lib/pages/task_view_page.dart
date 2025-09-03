@@ -20,7 +20,7 @@ class _TaskViewPageState extends State<TaskViewPage>
   late Animation<Offset> _slideAnimation;
   final DashboardController controller = Get.find<DashboardController>();
   final dateFormat = DateFormat('dd MMM yyyy');
-  
+
   // เพิ่ม variable เพื่อเก็บ current task
   late TaskModel currentTask;
 
@@ -66,7 +66,7 @@ class _TaskViewPageState extends State<TaskViewPage>
     super.initState();
     // Initialize current task
     currentTask = widget.task;
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -74,16 +74,16 @@ class _TaskViewPageState extends State<TaskViewPage>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutBack,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutBack,
+          ),
+        );
     _animationController.forward();
   }
-  
+
   void _refreshTaskData() {
     final latestTask = controller.findTaskById(widget.task.id);
     if (latestTask != null) {
@@ -101,11 +101,11 @@ class _TaskViewPageState extends State<TaskViewPage>
 
   String _normalizePriority(String? priority) {
     if (priority == null) return 'Medium';
-    
+
     if (priorityOptions.containsKey(priority)) {
       return priority;
     }
-    
+
     switch (priority.toLowerCase()) {
       case 'high':
       case 'สูง':
@@ -123,7 +123,7 @@ class _TaskViewPageState extends State<TaskViewPage>
   Future<void> _navigateToEditPage() async {
     // Navigate to edit page and wait for result
     final result = await Get.to(TaskDetailPage(task: currentTask));
-    
+
     // If task was updated, refresh the page
     if (result == true) {
       _refreshTaskData();
@@ -134,54 +134,46 @@ class _TaskViewPageState extends State<TaskViewPage>
   Widget build(BuildContext context) {
     // ใช้ currentTask แทน latestTask
     final priority = _normalizePriority(currentTask.priority);
-    final statusInfo = statusOptions[currentTask.status] ?? statusOptions['todo']!;
-    final priorityInfo = priorityOptions[priority] ?? priorityOptions['Medium']!;
-    
+    final statusInfo =
+        statusOptions[currentTask.status] ?? statusOptions['todo']!;
+    final priorityInfo =
+        priorityOptions[priority] ?? priorityOptions['Medium']!;
+
     final checklist = currentTask.checklist ?? [];
-    final completedCount = checklist.where((item) => 
-      item['done'] == true || item['completed'] == true).length;
-    
-    final isOverdue = currentTask.status != 'done' && 
-                     currentTask.endDate.isBefore(DateTime.now());
+    final completedCount = checklist
+        .where((item) => item['done'] == true || item['completed'] == true)
+        .length;
+
+    final isOverdue =
+        currentTask.status != 'done' &&
+        currentTask.endDate.isBefore(DateTime.now());
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            floating: false,
             pinned: true,
+            automaticallyImplyLeading: false,
             backgroundColor: statusInfo['color'],
             foregroundColor: Colors.white,
-            title: Text(
-              'taskview'.tr,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
+            elevation: 0,
+            toolbarHeight: 86,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
             ),
+            titleSpacing: 0,
+            title: _buildStatusHeaderBar(statusInfo),
             actions: [
               IconButton(
                 onPressed: _navigateToEditPage,
                 icon: const Icon(Icons.edit_rounded),
                 tooltip: 'edit'.tr,
+                color: Colors.white,
               ),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      statusInfo['color'],
-                      (statusInfo['color'] as Color).withOpacity(0.8),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ),
+
           SliverToBoxAdapter(
             child: SlideTransition(
               position: _slideAnimation,
@@ -194,7 +186,7 @@ class _TaskViewPageState extends State<TaskViewPage>
                     children: [
                       // Task Title Card
                       _buildTaskTitleCard(currentTask, statusInfo, isOverdue),
-                      
+
                       const SizedBox(height: 20),
 
                       // Status & Priority Row
@@ -258,7 +250,11 @@ class _TaskViewPageState extends State<TaskViewPage>
     );
   }
 
-  Widget _buildTaskTitleCard(TaskModel task, Map<String, dynamic> statusInfo, bool isOverdue) {
+  Widget _buildTaskTitleCard(
+    TaskModel task,
+    Map<String, dynamic> statusInfo,
+    bool isOverdue,
+  ) {
     return Card(
       elevation: 8,
       shadowColor: Colors.black.withOpacity(0.15),
@@ -269,10 +265,7 @@ class _TaskViewPageState extends State<TaskViewPage>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              Colors.grey[50]!,
-            ],
+            colors: [Colors.white, Colors.grey[50]!],
           ),
         ),
         padding: const EdgeInsets.all(24),
@@ -312,7 +305,10 @@ class _TaskViewPageState extends State<TaskViewPage>
             if (isOverdue) ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.red[100],
                   borderRadius: BorderRadius.circular(20),
@@ -320,8 +316,11 @@ class _TaskViewPageState extends State<TaskViewPage>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.warning_amber_rounded, 
-                         color: Colors.red[700], size: 16),
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.red[700],
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'overdue'.tr,
@@ -394,7 +393,7 @@ class _TaskViewPageState extends State<TaskViewPage>
 
   Widget _buildDateInfoCard(TaskModel task, bool isOverdue) {
     final duration = task.endDate.difference(task.startDate).inDays;
-    
+
     return Card(
       elevation: 3,
       shadowColor: Colors.black.withOpacity(0.1),
@@ -430,7 +429,7 @@ class _TaskViewPageState extends State<TaskViewPage>
               ],
             ),
             const SizedBox(height: 16),
-            
+
             Row(
               children: [
                 Expanded(
@@ -441,12 +440,12 @@ class _TaskViewPageState extends State<TaskViewPage>
                     Colors.green,
                   ),
                 ),
-                
+
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   child: Icon(Icons.arrow_forward, color: Colors.grey[400]),
                 ),
-                
+
                 Expanded(
                   child: _buildDateDisplay(
                     'duedate'.tr,
@@ -457,9 +456,9 @@ class _TaskViewPageState extends State<TaskViewPage>
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -487,7 +486,12 @@ class _TaskViewPageState extends State<TaskViewPage>
     );
   }
 
-  Widget _buildDateDisplay(String label, DateTime date, IconData icon, Color color) {
+  Widget _buildDateDisplay(
+    String label,
+    DateTime date,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -520,7 +524,7 @@ class _TaskViewPageState extends State<TaskViewPage>
 
   Widget _buildProgressCard(List<dynamic> checklist, int completedCount) {
     final progress = completedCount / checklist.length;
-    
+
     return Card(
       elevation: 3,
       shadowColor: Colors.black.withOpacity(0.1),
@@ -564,9 +568,9 @@ class _TaskViewPageState extends State<TaskViewPage>
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             LinearProgressIndicator(
               value: progress,
               backgroundColor: Colors.grey[200],
@@ -575,9 +579,9 @@ class _TaskViewPageState extends State<TaskViewPage>
               ),
               minHeight: 8,
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             Text(
               'subtask_progress'.trParams({
                 'completed': completedCount.toString(),
@@ -630,7 +634,7 @@ class _TaskViewPageState extends State<TaskViewPage>
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
 
             if (checklist.isEmpty)
@@ -667,7 +671,7 @@ class _TaskViewPageState extends State<TaskViewPage>
     final done = item['done'] ?? item['completed'] ?? false;
     final title = item['title'] ?? '';
     final description = item['description'] ?? '';
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -696,9 +700,9 @@ class _TaskViewPageState extends State<TaskViewPage>
                 ? const Icon(Icons.check, size: 16, color: Colors.white)
                 : null,
           ),
-          
+
           const SizedBox(width: 12),
-          
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -714,7 +718,7 @@ class _TaskViewPageState extends State<TaskViewPage>
                         : TextDecoration.none,
                   ),
                 ),
-                
+
                 if (description.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -726,6 +730,72 @@ class _TaskViewPageState extends State<TaskViewPage>
                     ),
                   ),
                 ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusHeaderBar(Map<String, dynamic> statusInfo) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Back
+          IconButton(
+            onPressed: () => Get.back(),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+            ),
+          ),
+
+          // กล่องไอคอนโปร่ง (ให้ฟีลเดียวกับหน้าอื่น ๆ)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+            ),
+            child: const Icon(
+              Icons.visibility_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+
+          const SizedBox(width: 14),
+
+          // ชื่อใหญ่ + ซับไตเติล
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'taskview'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+                Text(
+                  '${'status'.tr}: ${statusOptions[currentTask.status]?['label'] ?? '—'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
           ),

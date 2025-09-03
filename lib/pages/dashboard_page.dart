@@ -7,12 +7,67 @@ import 'package:intl/intl.dart';
 import '../../controllers/dashboard_controller.dart';
 import '../../models/task_model.dart';
 
-const Color primaryColor = Color(0xFF3B82F6);
+// ✅ เปลี่ยนสีหลักของหน้านี้ให้เข้ากับธีมใหม่
+const Color primaryColor = Color(0xFF06B6D4); // cyan-500
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
+  DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage>
+    with TickerProviderStateMixin {
   final DashboardController controller = Get.find<DashboardController>();
 
-  DashboardPage({super.key});
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  String get _todayStr {
+    final locale = Get.locale?.toString() ?? 'en_US';
+    return DateFormat('dd MMM yyyy', locale).format(DateTime.now());
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initAnimations();
+  }
+
+  void _initAnimations() {
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.25),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack),
+    );
+
+    _fadeController.forward();
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
 
   // ฟังก์ชันสำหรับกำหนดสีตาม Priority
   Map<String, dynamic> _getPriorityColors(String priority) {
@@ -67,104 +122,204 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: _buildAppBar(),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: primaryColor,
-              strokeWidth: 3,
-            ),
-          );
-        }
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    _buildStatsCards(),
-                    const SizedBox(height: 32),
-                    _buildTaskListSection(
-                      context: context,
-                      title: "todaytasks".tr,
-                      tasks: controller.tasksToday,
-                      emptyMessage: "notasksfortoday".tr,
-                      icon: Icons.today,
-                      gradientColors: [
-                        Colors.blue.shade400,
-                        Colors.blue.shade600,
-                      ],
+      backgroundColor: Colors.transparent,
+      body: Container(
+        // ✅ พื้นหลังธีมใหม่
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF06B6D4), // cyan-500
+              Color(0xFF0891B2), // cyan-600
+              Color(0xFF0891B2),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildModernAppBar(
+                title: 'dashboard'.tr,
+                subtitle: _todayStr,
+              ),
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
                     ),
-                    const SizedBox(height: 28),
-                    _buildTaskListSection(
-                      context: context,
-                      title: "taskincoming(3days)".tr,
-                      tasks: controller.tasksUpcoming,
-                      emptyMessage: "noupcomingtasks".tr,
-                      icon: Icons.upcoming,
-                      gradientColors: [
-                        Colors.purple.shade400,
-                        Colors.purple.shade600,
+                  ),
+                  child: Obx(() {
+                    if (controller.isLoading.value) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                // ✅ กล่องโหลดใช้กราเดียนต์ธีมใหม่
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 3,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              'loading'.tr,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return CustomScrollView(
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: SlideTransition(
+                            position: _slideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  children: [
+                                    _buildStatsCards(),
+                                    const SizedBox(height: 32),
+                                    _buildTaskListSection(
+                                      context: context,
+                                      title: "todaytasks".tr,
+                                      tasks: controller.tasksToday,
+                                      emptyMessage: "notasksfortoday".tr,
+                                      icon: Icons.today,
+                                      gradientColors: [
+                                        Colors.blue.shade400,
+                                        Colors.blue.shade600,
+                                      ],
+                                    ),
+                                    const SizedBox(height: 28),
+                                    _buildTaskListSection(
+                                      context: context,
+                                      title: "taskincoming(3days)".tr,
+                                      tasks: controller.tasksUpcoming,
+                                      emptyMessage: "noupcomingtasks".tr,
+                                      icon: Icons.upcoming,
+                                      gradientColors: [
+                                        Colors.purple.shade400,
+                                        Colors.purple.shade600,
+                                      ],
+                                    ),
+                                    const SizedBox(height: 28),
+                                    _buildTaskListSection(
+                                      context: context,
+                                      title: "taskoverdue".tr,
+                                      tasks: controller.tasksOverdue,
+                                      emptyMessage: "nooverduetasks".tr,
+                                      icon: Icons.schedule,
+                                      gradientColors: [
+                                        Colors.red.shade400,
+                                        Colors.red.shade600,
+                                      ],
+                                    ),
+                                    const SizedBox(height: 100),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 28),
-                    _buildTaskListSection(
-                      context: context,
-                      title: "taskoverdue".tr,
-                      tasks: controller.tasksOverdue,
-                      emptyMessage: "nooverduetasks".tr,
-                      icon: Icons.schedule,
-                      gradientColors: [
-                        Colors.red.shade400,
-                        Colors.red.shade600,
-                      ],
-                    ),
-                    const SizedBox(height: 100),
-                  ],
+                    );
+                  }),
                 ),
               ),
-            ),
-          ],
-        );
-      }),
+            ],
+          ),
+        ),
+      ),
       floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-  return AppBar(
-    title: Text(
-      'dashboard'.tr,
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 24,
-        color: Colors.white, // สีขาวให้อ่านชัดบน gradient
-      ),
-    ),
-    leading: IconButton(
-      onPressed: () => Get.back(),
-      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-    ),
-    foregroundColor: Colors.white,
-    elevation: 0,
-    flexibleSpace: Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.blue.shade400,
-            Colors.blue.shade600,
+  /// Modern AppBar สไตล์เดียวกับ TaskListPage (มีแอนิเมชัน)
+  Widget _buildModernAppBar({
+    required String title,
+    String? subtitle,
+  }) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => Get.back(),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withOpacity(0.3)),
+              ),
+              child: const Icon(
+                Icons.dashboard_rounded,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.85),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildStatsCards() {
     return Row(
@@ -249,16 +404,32 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildFloatingActionButton() {
-    return FloatingActionButton.extended(
-      heroTag: 'importAI',
-      backgroundColor: primaryColor,
-      onPressed: () => Get.toNamed('/ai-import'),
-      icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
-      label: const Text(
-        'AI Import',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    return Container(
+      decoration: BoxDecoration(
+        // ✅ FAB เปลี่ยนเป็นกราเดียนต์ธีมใหม่
+        gradient: const LinearGradient(
+          colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF06B6D4).withOpacity(0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
-      elevation: 8,
+      child: FloatingActionButton.extended(
+        heroTag: 'importAI',
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        onPressed: () => Get.toNamed('/ai-import'),
+        icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+        label: const Text(
+          'AI Import',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 
@@ -344,8 +515,6 @@ class DashboardPage extends StatelessWidget {
   Widget _taskCard(TaskModel task) {
     final colors = _getPriorityColors(task.priority);
     final gradientColors = colors['gradient'] as List<Color>;
-    final bgColor = colors['bg'] as Color;
-    final fgColor = colors['fg'] as Color;
     final shadowColor = colors['shadow'] as Color;
     final priorityIcon = colors['icon'] as IconData;
     final locale = Get.locale?.languageCode ?? 'en';

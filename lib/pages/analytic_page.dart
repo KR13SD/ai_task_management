@@ -18,11 +18,15 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   late Animation<double> _fadeAnimation;
   String selectedPeriod = 'thisWeek';
 
+  // 🎨 Primary theme (Red)
+  static const Color kPrimary1 = Color(0xFFEF4444); // red-500
+  static const Color kPrimary2 = Color(0xFFDC2626); // red-600
+
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
@@ -138,11 +142,12 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        // ✅ เปลี่ยนพื้นหลังหลักเป็นธีมแดง
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF667eea), Color(0xFF764ba2), Color(0xFF896fbc)],
+            colors: [kPrimary1, kPrimary2, kPrimary2],
           ),
         ),
         child: SafeArea(
@@ -174,7 +179,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
               ),
               Container(
                 padding: const EdgeInsets.all(10),
@@ -217,53 +222,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             ],
           ),
           const SizedBox(height: 16),
-          _buildPeriodSelector(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodSelector() {
-    final periods = [
-      {'key': 'today', 'label': 'today'.tr},
-      {'key': 'thisWeek', 'label': 'thisWeek'.tr},
-      {'key': 'thisMonth', 'label': 'thisMonth'.tr},
-      {'key': 'allTime', 'label': 'allTime'.tr},
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: periods.map((period) {
-          final isSelected = selectedPeriod == period['key'];
-          return GestureDetector(
-            onTap: () => setState(() => selectedPeriod = period['key']!),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.white
-                    : Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected
-                      ? Colors.transparent
-                      : Colors.white.withOpacity(0.3),
-                ),
-              ),
-              child: Text(
-                period['label']!,
-                style: TextStyle(
-                  color: isSelected ? Color(0xFF667eea) : Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
       ),
     );
   }
@@ -373,7 +332,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         'value': statusCounts['total'].toString(),
         'subtitle': 'allTasks'.tr,
         'icon': Icons.assignment_outlined,
-        'color': Color(0xFF667eea),
+        'color': kPrimary1, // ✅ ใช้สีธีมแดง
         'trend': '+${timeBased['weekTasks']}',
       },
       {
@@ -381,7 +340,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         'value': statusCounts['done'].toString(),
         'subtitle': '${(performance['productivity'] as double).toInt()}%',
         'icon': Icons.check_circle_outline,
-        'color': Color(0xFF4CAF50),
+        'color': const Color(0xFF4CAF50),
         'trend': '+${timeBased['weekCompleted']}',
       },
       {
@@ -389,7 +348,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         'value': statusCounts['inProgress'].toString(),
         'subtitle': 'active'.tr,
         'icon': Icons.schedule_outlined,
-        'color': Color(0xFFFF9800),
+        'color': const Color(0xFFFF9800),
         'trend': 'now'.tr,
       },
       {
@@ -397,7 +356,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         'value': statusCounts['overdue'].toString(),
         'subtitle': 'urgent'.tr,
         'icon': Icons.warning_outlined,
-        'color': Color(0xFFE91E63),
+        'color': const Color(0xFFE91E63),
         'trend': statusCounts['overdue'] > 0 ? '!' : '✓',
       },
     ];
@@ -412,7 +371,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Color(0xFF667eea),
+                  color: kPrimary1, // ✅ ใช้สีธีมแดง
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -460,7 +419,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   Widget _buildMetricCard(Map<String, dynamic> metric, double width) {
     return Container(
       width: width,
-      constraints: BoxConstraints(minHeight: 100, maxHeight: 120),
+      constraints: const BoxConstraints(minHeight: 100, maxHeight: 120),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -481,7 +440,8 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
+                Container
+                (
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: (metric['color'] as Color).withOpacity(0.1),
@@ -516,8 +476,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TweenAnimationBuilder<int>(
-                    duration: Duration(milliseconds: 1000),
-                    tween: IntTween(begin: 0, end: int.parse(metric['value'])),
+                    duration: const Duration(milliseconds: 1000),
+                    tween:
+                        IntTween(begin: 0, end: int.parse(metric['value'])),
                     builder: (context, animValue, child) {
                       return Text(
                         animValue.toString(),
@@ -581,7 +542,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Color(0xFF4CAF50),
+                  color: const Color(0xFF4CAF50),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -610,14 +571,14 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               _buildProgressIndicator(
                 "productivity".tr,
                 productivity,
-                Color(0xFF4CAF50),
+                const Color(0xFF4CAF50),
                 "${productivity.toInt()}%",
               ),
               const SizedBox(height: 16),
               _buildProgressIndicator(
                 "onTimeRate".tr,
                 onTimeRate,
-                Color(0xFF2196F3),
+                const Color(0xFF2196F3),
                 "${onTimeRate.toInt()}%",
               ),
             ],
@@ -713,7 +674,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Color(0xFF667eea),
+                  color: kPrimary1, // ✅ ใช้สีธีมแดง
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -788,17 +749,17 @@ class _AnalyticsPageState extends State<AnalyticsPage>
       {
         'label': 'inProgress'.tr,
         'value': statusCounts['inProgress'],
-        'color': Color(0xFFFF9800),
+        'color': const Color(0xFFFF9800),
       },
       {
         'label': 'completed'.tr,
         'value': statusCounts['done'],
-        'color': Color(0xFF4CAF50),
+        'color': const Color(0xFF4CAF50),
       },
       {
         'label': 'overdue'.tr,
         'value': statusCounts['overdue'],
-        'color': Color(0xFFE91E63),
+        'color': const Color(0xFFE91E63),
       },
     ];
 
@@ -812,9 +773,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             sectionsSpace: 2,
             centerSpaceRadius: 30,
             startDegreeOffset: -90,
-            sections: data.where((item) => (item['value'] as int) > 0).map((
-              item,
-            ) {
+            sections: data.where((item) => (item['value'] as int) > 0).map((item) {
               final percentage = (item['value'] as int) / total * 100;
               return PieChartSectionData(
                 color: item['color'] as Color,
@@ -844,17 +803,17 @@ class _AnalyticsPageState extends State<AnalyticsPage>
       {
         'label': 'inProgress'.tr,
         'value': statusCounts['inProgress'],
-        'color': Color(0xFFFF9800),
+        'color': const Color(0xFFFF9800),
       },
       {
         'label': 'completed'.tr,
         'value': statusCounts['done'],
-        'color': Color(0xFF4CAF50),
+        'color': const Color(0xFF4CAF50),
       },
       {
         'label': 'overdue'.tr,
         'value': statusCounts['overdue'],
-        'color': Color(0xFFE91E63),
+        'color': const Color(0xFFE91E63),
       },
     ];
 
@@ -924,7 +883,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Color(0xFF9C27B0),
+                  color: kPrimary2, // ✅ ใช้สีธีมแดง
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -1031,8 +990,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                   );
                 }).toList(),
                 isCurved: true,
-                gradient: LinearGradient(
-                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                // ✅ กราฟเส้นใช้ธีมแดง
+                gradient: const LinearGradient(
+                  colors: [kPrimary1, kPrimary2],
                 ),
                 barWidth: 3,
                 isStrokeCapRound: true,
@@ -1042,8 +1002,8 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFF667eea).withOpacity(0.2),
-                      Color(0xFF667eea).withOpacity(0.0),
+                      kPrimary1.withOpacity(0.2),
+                      kPrimary1.withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -1054,7 +1014,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                       radius: 4,
                       color: Colors.white,
                       strokeWidth: 2,
-                      strokeColor: Color(0xFF667eea),
+                      strokeColor: kPrimary1, // ✅ จุดใช้สีธีมแดง
                     );
                   },
                 ),
@@ -1079,7 +1039,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     if (productivity >= 80) {
       insightsList.add({
         'icon': Icons.trending_up,
-        'color': Color(0xFF4CAF50),
+        'color': const Color(0xFF4CAF50),
         'title': 'excellentWork'.tr,
         'description': 'keepUpGoodWork'.tr,
         'type': 'positive',
@@ -1087,7 +1047,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     } else if (productivity >= 60) {
       insightsList.add({
         'icon': Icons.show_chart,
-        'color': Color(0xFFFF9800),
+        'color': const Color(0xFFFF9800),
         'title': 'goodProgress'.tr,
         'description': 'roomForImprovement'.tr,
         'type': 'neutral',
@@ -1095,7 +1055,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     } else if (productivity < 40 && statusCounts['total'] > 0) {
       insightsList.add({
         'icon': Icons.trending_down,
-        'color': Color(0xFFE91E63),
+        'color': const Color(0xFFE91E63),
         'title': 'needsFocus'.tr,
         'description': 'tryToCompleteMore'.tr,
         'type': 'warning'.tr,
@@ -1107,7 +1067,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     if (overdue > 0) {
       insightsList.add({
         'icon': Icons.warning_amber,
-        'color': Color(0xFFE91E63),
+        'color': const Color(0xFFE91E63),
         'title': 'overdueTasks'.tr,
         'description': 'tasksNeedAttention'.trParams({
           'count': overdue.toString(),
@@ -1121,7 +1081,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     if (inProgress > 5) {
       insightsList.add({
         'icon': Icons.psychology,
-        'color': Color(0xFF2196F3),
+        'color': const Color(0xFF2196F3),
         'title': 'focusTip'.tr,
         'description': 'considerFewTasks'.tr,
         'type': 'tip',
@@ -1133,7 +1093,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     if (avgTasksPerDay > 3) {
       insightsList.add({
         'icon': Icons.speed,
-        'color': Color(0xFF9C27B0),
+        'color': const Color(0xFF9C27B0),
         'title': 'highActivity'.tr,
         'description': 'veryProductive'.tr,
         'type': 'positive',
@@ -1150,7 +1110,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Color(0xFFFF9800),
+                  color: const Color(0xFFFF9800),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(

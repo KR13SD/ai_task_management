@@ -1,3 +1,4 @@
+import 'package:ai_task_project_manager/pages/task_view_page.dart';
 import 'package:ai_task_project_manager/services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,12 +23,16 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  // 🎨 Primary theme green
+  static const Color kPrimary1 = Color(0xFF10B981); // emerald-500
+  static const Color kPrimary2 = Color(0xFF059669); // emerald-600
+
   @override
   void initState() {
     super.initState();
     _initAnimations();
     _initDateFormatting();
-    
+
     final service = Get.find<LocalizationService>();
     ever(service.currentLocale, (_) => _initDateFormatting());
   }
@@ -41,14 +46,16 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
     );
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.elasticOut));
+    ).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.elasticOut),
+    );
 
     _fadeController.forward();
     _slideController.forward();
@@ -78,7 +85,8 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
       'key': 'all',
       'label': 'all'.tr,
       'icon': Icons.dashboard_rounded,
-      'gradient': [Color(0xFF667eea), Color(0xFF764ba2)],
+      // ✅ เปลี่ยนเป็นธีมเขียว
+      'gradient': [kPrimary1, kPrimary2],
     },
     {
       'key': 'todo',
@@ -115,18 +123,13 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
       case 'todo':
         return allTasks.where((t) => t.status.toLowerCase() == 'todo').toList();
       case 'in_progress':
-        return allTasks
-            .where((t) => t.status.toLowerCase() == 'in_progress')
-            .toList();
+        return allTasks.where((t) => t.status.toLowerCase() == 'in_progress').toList();
       case 'done':
         return allTasks.where((t) => t.status.toLowerCase() == 'done').toList();
       case 'overdue':
         final now = DateTime.now();
         return allTasks
-            .where(
-              (t) =>
-                  t.status.toLowerCase() != 'done' && t.endDate.isBefore(now),
-            )
+            .where((t) => t.status.toLowerCase() != 'done' && t.endDate.isBefore(now))
             .toList();
       case 'all':
       default:
@@ -143,30 +146,28 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
       'done': 4,
     };
 
-    return tasks..sort((a, b) {
-      String statusA = a.status.toLowerCase();
-      String statusB = b.status.toLowerCase();
+    return tasks
+      ..sort((a, b) {
+        String statusA = a.status.toLowerCase();
+        String statusB = b.status.toLowerCase();
 
-      if (statusA != 'done' && a.endDate.isBefore(now)) statusA = 'overdue';
-      if (statusB != 'done' && b.endDate.isBefore(now)) statusB = 'overdue';
+        if (statusA != 'done' && a.endDate.isBefore(now)) statusA = 'overdue';
+        if (statusB != 'done' && b.endDate.isBefore(now)) statusB = 'overdue';
 
-      return (priority[statusA] ?? 99).compareTo(priority[statusB] ?? 99);
-    });
+        return (priority[statusA] ?? 99).compareTo(priority[statusB] ?? 99);
+      });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        // ✅ พื้นหลังหลักเป็น gradient เขียว
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-              Color(0xFF6B73FF),
-            ],
+            colors: [kPrimary1, kPrimary2, kPrimary2],
           ),
         ),
         child: SafeArea(
@@ -207,11 +208,11 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
         child: Row(
           children: [
             IconButton(
-              onPressed: () => Get.back(), 
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.white,
-              )),
+                onPressed: () => Get.back(),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                )),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -241,7 +242,7 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
                   Text(
                     'subTitleTaskList'.tr,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withOpacity(0.85),
                       fontSize: 14,
                     ),
                   ),
@@ -335,9 +336,8 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                    ),
+                    // ✅ โหลดด้วยกราเดียนต์เขียว
+                    gradient: const LinearGradient(colors: [kPrimary1, kPrimary2]),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const CircularProgressIndicator(
@@ -491,7 +491,7 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(24),
-                  onTap: () => Get.to(() => TaskDetailPage(task: task)),
+                  onTap: () => Get.to(() => TaskViewPage(task: task)),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -518,7 +518,8 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
     );
   }
 
-  Widget _buildCardHeader(TaskModel task, List<Color> gradientColors, IconData statusIcon, bool isDone) {
+  Widget _buildCardHeader(
+      TaskModel task, List<Color> gradientColors, IconData statusIcon, bool isDone) {
     return Row(
       children: [
         Container(
@@ -604,7 +605,8 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
               'duedate'.tr,
               task.endDate,
               Icons.flag_rounded,
-              isOverdue ? const Color(0xFFe17055) : const Color(0xFF667eea),
+              // ✅ ถ้าไม่ overdue ใช้เขียวหลัก
+              isOverdue ? const Color(0xFFe17055) : kPrimary2,
             ),
           ),
         ],
@@ -620,15 +622,15 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
           colors: [Color(0xFFFFE5E5), Color(0xFFFFCCCC)],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFe17055).withOpacity(0.3)),
+        border: Border.all(color: Color(0xFFe17055).withOpacity(0.3)),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const Icon(Icons.warning_rounded, color: Color(0xFFe17055), size: 20),
-          const SizedBox(width: 8),
+          Icon(Icons.warning_rounded, color: Color(0xFFe17055), size: 20),
+          SizedBox(width: 8),
           Text(
-            'out of date'.tr,
-            style: const TextStyle(
+            'out of date',
+            style: TextStyle(
               color: Color(0xFFe17055),
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -639,21 +641,22 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
     );
   }
 
-  Widget _buildActionButtons(TaskModel task, bool isDone, List<Color> gradientColors) {
+  Widget _buildActionButtons(
+      TaskModel task, bool isDone, List<Color> gradientColors) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (!isDone) ...[
           _buildGradientActionButton(
             icon: Icons.play_arrow_rounded,
-            gradient: [const Color(0xFFfdcb6e), const Color(0xFFe17055)],
+            gradient: const [Color(0xFFfdcb6e), Color(0xFFe17055)],
             onPressed: () => _confirmUpdateStatus(task),
             tooltip: 'starttask'.tr,
           ),
           const SizedBox(width: 10),
           _buildGradientActionButton(
             icon: Icons.check_rounded,
-            gradient: [const Color(0xFF00b894), const Color(0xFF00cec9)],
+            gradient: const [Color(0xFF00b894), Color(0xFF00cec9)],
             onPressed: () => _confirmMarkDone(task),
             tooltip: 'endtask'.tr,
           ),
@@ -661,7 +664,7 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
         ],
         _buildGradientActionButton(
           icon: Icons.delete_outline_rounded,
-          gradient: [const Color(0xFFe17055), const Color(0xFFd63031)],
+          gradient: const [Color(0xFFe17055), Color(0xFFd63031)],
           onPressed: () => _confirmDelete(task),
           tooltip: 'deletetask'.tr,
         ),
@@ -749,13 +752,12 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
   Widget _buildModernFAB() {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-        ),
+        // ✅ FAB ใช้ธีมเขียว
+        gradient: const LinearGradient(colors: [kPrimary1, kPrimary2]),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF667eea).withOpacity(0.4),
+            color: kPrimary1.withOpacity(0.35),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -800,11 +802,8 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF00b894), Color(0xFF00cec9)],
-                ),
-                borderRadius: BorderRadius.circular(12),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(colors: [kPrimary1, kPrimary2]),
               ),
               child: const Icon(Icons.task_alt, color: Colors.white),
             ),
@@ -822,18 +821,15 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
             child: Text('cancel'.tr, style: TextStyle(color: Colors.grey[600])),
           ),
           Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF00b894), Color(0xFF00cec9)],
-              ),
-              borderRadius: BorderRadius.circular(8),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [kPrimary1, kPrimary2]),
             ),
             child: TextButton(
               onPressed: () {
                 controller.updateTaskStatus(task.id, 'done');
                 Navigator.pop(context);
               },
-              child: Text('confirm'.tr, style: const TextStyle(color: Colors.white)),
+              child: const Text('confirm', style: TextStyle(color: Colors.white)),
             ),
           ),
         ],
@@ -851,11 +847,8 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFe17055), Color(0xFFd63031)],
-                ),
-                borderRadius: BorderRadius.circular(12),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(colors: [Color(0xFFe17055), Color(0xFFd63031)]),
               ),
               child: const Icon(Icons.delete_outline, color: Colors.white),
             ),
@@ -873,18 +866,15 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
             child: Text('cancel'.tr, style: TextStyle(color: Colors.grey[600])),
           ),
           Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFe17055), Color(0xFFd63031)],
-              ),
-              borderRadius: BorderRadius.circular(8),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [Color(0xFFe17055), Color(0xFFd63031)]),
             ),
             child: TextButton(
               onPressed: () {
                 controller.deleteTask(task.id);
                 Navigator.pop(context);
               },
-              child: Text('confirm'.tr, style: const TextStyle(color: Colors.white)),
+              child: const Text('confirm', style: TextStyle(color: Colors.white)),
             ),
           ),
         ],
@@ -902,11 +892,8 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFfdcb6e), Color(0xFFe17055)],
-                ),
-                borderRadius: BorderRadius.circular(12),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(colors: [Color(0xFFfdcb6e), Color(0xFFe17055)]),
               ),
               child: const Icon(Icons.work, color: Colors.white),
             ),
@@ -924,18 +911,15 @@ class _TaskListPageState extends State<TaskListPage> with TickerProviderStateMix
             child: Text('cancel'.tr, style: TextStyle(color: Colors.grey[600])),
           ),
           Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFfdcb6e), Color(0xFFe17055)],
-              ),
-              borderRadius: BorderRadius.circular(8),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [Color(0xFFfdcb6e), Color(0xFFe17055)]),
             ),
             child: TextButton(
               onPressed: () {
                 controller.updateTaskStatus(task.id, 'in_progress');
                 Navigator.pop(context);
               },
-              child: Text('confirm'.tr, style: const TextStyle(color: Colors.white)),
+              child: const Text('confirm', style: TextStyle(color: Colors.white)),
             ),
           ),
         ],
