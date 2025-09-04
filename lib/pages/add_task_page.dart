@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../controllers/dashboard_controller.dart';
+import '../controllers/add_task_controller.dart';
 
 class AddTaskPage extends StatefulWidget {
   const AddTaskPage({super.key});
@@ -13,31 +11,10 @@ class AddTaskPage extends StatefulWidget {
 
 class _AddTaskPageState extends State<AddTaskPage>
     with TickerProviderStateMixin {
-  final DashboardController dashboardController =
-      Get.find<DashboardController>();
-  final TextEditingController titleController = TextEditingController();
+  final AddTaskController controller = Get.put(AddTaskController());
   final _formKey = GlobalKey<FormState>();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
-  String priority = 'Low';
-  DateTime startDate = DateTime.now();
-  DateTime endDate = DateTime.now().add(const Duration(days: 1));
-  List<Map<String, dynamic>> checklist = [];
-  bool _isLoading = false;
-
-  // สีธีมสำหรับ priority
-  final Map<String, Color> priorityColors = {
-    'Low': Colors.green,
-    'Medium': Colors.orange,
-    'High': Colors.red,
-  };
-
-  final Map<String, IconData> priorityIcons = {
-    'Low': Icons.keyboard_arrow_down,
-    'Medium': Icons.remove,
-    'High': Icons.keyboard_arrow_up,
-  };
 
   @override
   void initState() {
@@ -55,167 +32,7 @@ class _AddTaskPageState extends State<AddTaskPage>
   @override
   void dispose() {
     _animationController.dispose();
-    titleController.dispose();
     super.dispose();
-  }
-
-  Future<void> saveTask() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) {
-        _showErrorSnackbar('ไม่พบผู้ใช้');
-        return;
-      }
-
-      final newTaskData = {
-        'title': titleController.text.trim(),
-        'priority': priority,
-        'startDate': Timestamp.fromDate(startDate),
-        'endDate': Timestamp.fromDate(endDate),
-        'status': 'todo',
-        'uid': uid,
-        'checklist': checklist,
-        'createdAt': Timestamp.now(),
-      };
-
-      await FirebaseFirestore.instance.collection('tasks').add(newTaskData);
-
-      // Show success message and navigate back immediately
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'สร้าง Task "${titleController.text.trim()}" เรียบร้อยแล้ว',
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
-
-      // Force navigate back using the most reliable method
-      if (mounted) {
-        Navigator.of(context).pop(true);
-      }
-    } catch (e) {
-      _showErrorSnackbar('เกิดข้อผิดพลาดในการบันทึก: ${e.toString()}');
-      print('Error saving task: $e'); // สำหรับ debug
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _showErrorSnackbar(String message) {
-    Get.snackbar(
-      'เกิดข้อผิดพลาด ⚠️',
-      message,
-      backgroundColor: Colors.red.withOpacity(0.9),
-      colorText: Colors.white,
-      icon: const Icon(Icons.error_rounded, color: Colors.white),
-      duration: const Duration(seconds: 4),
-      snackPosition: SnackPosition.TOP,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      isDismissible: true,
-      dismissDirection: DismissDirection.horizontal,
-    );
-  }
-
-  Future<void> pickDate(BuildContext context, bool isStart) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: isStart ? startDate : endDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(
-              context,
-            ).colorScheme.copyWith(primary: priorityColors[priority]),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          startDate = picked;
-          if (endDate.isBefore(startDate)) {
-            endDate = startDate.add(const Duration(days: 1));
-          }
-        } else {
-          if (picked.isBefore(startDate)) {
-            _showErrorSnackbar('วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่ม');
-            return;
-          }
-          endDate = picked;
-        }
-      });
-    }
-  }
-
-  void addChecklistItem() {
-    setState(() {
-      checklist.add({
-        "title": "",
-        "description": "",
-        "done": false,
-        "expanded": true,
-        "id": DateTime.now().millisecondsSinceEpoch,
-      });
-    });
-  }
-
-  void removeChecklistItem(int index) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber, color: Colors.orange.shade600),
-            const SizedBox(width: 8),
-            Text('confirmdeletesu'.tr),
-          ],
-        ),
-        content: Text('confirmdeletesubtask'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('cancle'.tr),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('delete'.tr),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      setState(() {
-        checklist.removeAt(index);
-      });
-    }
   }
 
   String _formatDate(DateTime date) {
@@ -251,24 +68,25 @@ class _AddTaskPageState extends State<AddTaskPage>
         ),
         centerTitle: true,
         actions: [
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
+          Obx(() => controller.isLoading.value
+              ? const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : const SizedBox()),
         ],
       ),
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
+          child: Obx(() => ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
               // Task Title Card
               Card(
                 elevation: 2,
@@ -285,12 +103,12 @@ class _AddTaskPageState extends State<AddTaskPage>
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: priorityColors[priority]?.withOpacity(0.1),
+                              color: controller.priorityColors[controller.priority.value]?.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
                               Icons.task_alt,
-                              color: priorityColors[priority],
+                              color: controller.priorityColors[controller.priority.value],
                               size: 20,
                             ),
                           ),
@@ -306,7 +124,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        controller: titleController,
+                        controller: controller.titleController,
                         decoration: InputDecoration(
                           labelText: 'taskname'.tr,
                           hintText: 'hintnametask'.tr,
@@ -386,17 +204,17 @@ class _AddTaskPageState extends State<AddTaskPage>
                         ),
                         child: Row(
                           children: ['low'.tr, 'medium'.tr, 'high'.tr].map((p) {
-                            final isSelected = priority == p;
+                            final isSelected = controller.priority.value == p;
                             return Expanded(
                               child: GestureDetector(
-                                onTap: () => setState(() => priority = p),
+                                onTap: () => controller.priority.value = p,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 12,
                                   ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? priorityColors[p]
+                                        ? controller.priorityColors[p]
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(11),
                                   ),
@@ -404,19 +222,19 @@ class _AddTaskPageState extends State<AddTaskPage>
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
-                                        priorityIcons[p],
+                                        controller.priorityIcons[p],
                                         color: isSelected
                                             ? Colors.white
-                                            : priorityColors[p],
+                                            : controller.priorityColors[p],
                                         size: 18,
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        p,
+                                        p.toLowerCase().tr,
                                         style: TextStyle(
                                           color: isSelected
                                               ? Colors.white
-                                              : priorityColors[p],
+                                              : controller.priorityColors[p],
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -436,7 +254,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => pickDate(context, true),
+                              onTap: () => controller.pickDate(context, true),
                               child: Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
@@ -469,7 +287,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      _formatDate(startDate),
+                                      _formatDate(controller.startDate.value),
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
@@ -483,7 +301,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                           const SizedBox(width: 12),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => pickDate(context, false),
+                              onTap: () => controller.pickDate(context, false),
                               child: Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
@@ -516,7 +334,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      _formatDate(endDate),
+                                      _formatDate(controller.endDate.value),
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
@@ -577,7 +395,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                                   ),
                                   Text(
                                     'list_item'.trParams({
-                                      'count': checklist.length.toString(),
+                                      'count': controller.checklist.length.toString(),
                                     }),
                                     style: TextStyle(
                                       fontSize: 12,
@@ -589,7 +407,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                             ],
                           ),
                           ElevatedButton.icon(
-                            onPressed: addChecklistItem,
+                            onPressed: controller.addChecklistItem,
                             icon: const Icon(Icons.add, size: 18),
                             label: Text('add'.tr),
                             style: ElevatedButton.styleFrom(
@@ -607,7 +425,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                         ],
                       ),
 
-                      if (checklist.isEmpty) ...[
+                      if (controller.checklist.isEmpty) ...[
                         const SizedBox(height: 20),
                         Center(
                           child: Column(
@@ -637,7 +455,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                         ),
                       ] else ...[
                         const SizedBox(height: 16),
-                        ...checklist.asMap().entries.map((entry) {
+                        ...controller.checklist.asMap().entries.map((entry) {
                           int index = entry.key;
                           var item = entry.value;
 
@@ -658,16 +476,14 @@ class _AddTaskPageState extends State<AddTaskPage>
                               key: ValueKey(item["id"]),
                               initiallyExpanded: item["expanded"] ?? true,
                               onExpansionChanged: (expanded) {
-                                setState(() {
-                                  item["expanded"] = expanded;
-                                });
+                                controller.toggleChecklistExpansion(
+                                    index, expanded);
                               },
                               leading: Checkbox(
                                 value: item["done"],
                                 onChanged: (val) {
-                                  setState(() {
-                                    item["done"] = val!;
-                                  });
+                                  controller.toggleChecklistDone(
+                                      index, val!);
                                 },
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4),
@@ -706,7 +522,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                                       color: Colors.red,
                                       size: 20,
                                     ),
-                                    onPressed: () => removeChecklistItem(index),
+                                    onPressed: () => controller.removeChecklistItem(context, index),
                                   ),
                                   RotationTransition(
                                     turns: AlwaysStoppedAnimation(
@@ -779,8 +595,10 @@ class _AddTaskPageState extends State<AddTaskPage>
           child: SizedBox(
             height: 56,
             child: ElevatedButton.icon(
-              onPressed: _isLoading ? null : saveTask,
-              icon: _isLoading
+              onPressed: controller.isLoading.value
+                  ? null
+                  : () => controller.saveTask(_formKey, context),
+              icon: controller.isLoading.value
                   ? const SizedBox(
                       width: 20,
                       height: 20,
@@ -791,14 +609,14 @@ class _AddTaskPageState extends State<AddTaskPage>
                     )
                   : const Icon(Icons.save, size: 22),
               label: Text(
-                _isLoading ? 'saving'.tr : 'savetask'.tr,
+                controller.isLoading.value ? 'saving'.tr : 'savetask'.tr,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: priorityColors[priority],
+                backgroundColor: controller.priorityColors[controller.priority.value],
                 foregroundColor: Colors.white,
                 elevation: 2,
                 shape: RoundedRectangleBorder(
