@@ -207,11 +207,6 @@ class _AiImportPageState extends State<AiImportPage>
         }),
       );
 
-      // ❌ ไม่ต้อง reverse() แอนิเมชัน เพราะ header ใช้ตัวเดียวกัน
-      // _fadeCtrl.reverse();
-      // _slideCtrl.reverse();
-
-      // ✅ เคลียร์พรีวิว + กลับไปบนสุดแทน
       if (!mounted) return;
       setState(() {
         _previewTasks = [];
@@ -247,7 +242,7 @@ class _AiImportPageState extends State<AiImportPage>
         backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
         borderRadius: 12,
         margin: const EdgeInsets.all(20),
-        snackPosition: SnackPosition.TOP,
+        snackPosition: SnackPosition.BOTTOM,
         boxShadows: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
