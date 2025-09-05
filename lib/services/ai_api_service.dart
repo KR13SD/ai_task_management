@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/task_model.dart';
 
 class AiApiService {
-  static const String baseUrl = "https://ad82abb18af5.ngrok-free.app";
+  static const String baseUrl = "https://a3b93207a567.ngrok-free.app";
 
   static Future<TaskModel> fetchTaskFromAi(String input) async {
     final response = await http.post(

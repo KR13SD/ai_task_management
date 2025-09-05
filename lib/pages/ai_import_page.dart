@@ -242,7 +242,7 @@ class _AiImportPageState extends State<AiImportPage>
         backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
         borderRadius: 12,
         margin: const EdgeInsets.all(20),
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         boxShadows: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
