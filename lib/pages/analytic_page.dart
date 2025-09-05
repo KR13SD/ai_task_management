@@ -50,22 +50,22 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     final startOfMonth = DateTime(now.year, now.month, 1);
 
-    // Status counts
     int todo = 0, inProgress = 0, done = 0, overdue = 0;
 
-    // Time-based analytics
     int todayTasks = 0, weekTasks = 0, monthTasks = 0;
     int todayCompleted = 0, weekCompleted = 0, monthCompleted = 0;
 
-    // Performance metrics
-    List<int> dailyCompletions = List.filled(7, 0); // Last 7 days
+    // ✅ ใช้ list สำหรับ “จำนวนเสร็จในแต่ละวัน (ดูที่ completedAt)”
+    List<int> dailyCompletions = List.filled(7, 0);
+
+    // ✅ ตัวแปรสำหรับ on-time แบบใหม่
+    int completedWithKnownTime = 0; // done && completedAt != null
+    int completedOnTime = 0; // done && completedAt <= endDate
 
     for (var task in tasks) {
       final status = task.status.toLowerCase();
-      final taskDate = task.startDate;
       final isCompleted = status == 'done';
 
-      // Status counting
       switch (status) {
         case 'todo':
           todo++;
@@ -78,33 +78,56 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           break;
       }
 
-      // Overdue check
+      // overdue (งานยังไม่เสร็จ แล้วเลยกำหนด)
       if (!isCompleted && task.endDate.isBefore(now)) {
         overdue++;
       }
 
-      // Time-based analytics
-      if (taskDate.isAfter(now.subtract(Duration(days: 1)))) todayTasks++;
-      if (taskDate.isAfter(startOfWeek)) weekTasks++;
-      if (taskDate.isAfter(startOfMonth)) monthTasks++;
+      // ===== Time-based analytics (การนับ “สร้าง/เริ่ม” งานเดิมของคุณ) =====
+      final createdDate = task.startDate;
+      if (createdDate.isAfter(now.subtract(const Duration(days: 1))))
+        todayTasks++;
+      if (createdDate.isAfter(startOfWeek)) weekTasks++;
+      if (createdDate.isAfter(startOfMonth)) monthTasks++;
 
-      if (isCompleted) {
-        if (taskDate.isAfter(now.subtract(Duration(days: 1)))) todayCompleted++;
-        if (taskDate.isAfter(startOfWeek)) weekCompleted++;
-        if (taskDate.isAfter(startOfMonth)) monthCompleted++;
-      }
+      // ===== ใช้ completedAt สำหรับสถิติการเสร็จ =====
+      final cAt = task.completedAt;
+      if (isCompleted && cAt != null) {
+        if (cAt.isAfter(now.subtract(const Duration(days: 1))))
+          todayCompleted++;
+        if (cAt.isAfter(startOfWeek)) weekCompleted++;
+        if (cAt.isAfter(startOfMonth)) monthCompleted++;
 
-      // Daily completions for last 7 days
-      for (int i = 0; i < 7; i++) {
-        final day = now.subtract(Duration(days: i));
-        if (isCompleted &&
-            taskDate.day == day.day &&
-            taskDate.month == day.month &&
-            taskDate.year == day.year) {
-          dailyCompletions[6 - i]++;
+        // กราฟ 7 วันล่าสุด
+        for (int i = 0; i < 7; i++) {
+          final day = DateTime(
+            now.year,
+            now.month,
+            now.day,
+          ).subtract(Duration(days: 6 - i));
+          if (cAt.year == day.year &&
+              cAt.month == day.month &&
+              cAt.day == day.day) {
+            dailyCompletions[i]++;
+          }
         }
+
+        // ✅ on-time ใหม่
+        completedWithKnownTime++;
+        final completedOnOrBeforeDue = !cAt.isAfter(
+          task.endDate,
+        ); // cAt <= endDate
+        if (completedOnOrBeforeDue) completedOnTime++;
       }
     }
+
+    final total = tasks.length;
+    final productivity = total == 0 ? 0.0 : (done / total * 100);
+
+    // ✅ สูตรใหม่: พิจารณาเฉพาะงานที่เสร็จและรู้เวลาเสร็จจริง
+    final onTimeRate = completedWithKnownTime == 0
+        ? 0.0 // หรือจะส่ง null เพื่อให้ UI แสดง "N/A" ก็ได้
+        : (completedOnTime / completedWithKnownTime * 100);
 
     return {
       'statusCounts': {
@@ -112,7 +135,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         'inProgress': inProgress,
         'done': done,
         'overdue': overdue,
-        'total': tasks.length,
+        'total': total,
       },
       'timeBased': {
         'todayTasks': todayTasks,
@@ -124,10 +147,10 @@ class _AnalyticsPageState extends State<AnalyticsPage>
       },
       'performance': {
         'dailyCompletions': dailyCompletions,
-        'productivity': tasks.isEmpty ? 0.0 : (done / tasks.length * 100),
-        'onTimeRate': overdue == 0
-            ? 100.0
-            : ((tasks.length - overdue) / tasks.length * 100),
+        'productivity': productivity,
+        'onTimeRate': onTimeRate, // ✅ ใช้สูตรใหม่
+        'completedWithKnownTime': completedWithKnownTime, // (ไว้โชว์/ดีบัก)
+        'completedOnTime': completedOnTime, // (ไว้โชว์/ดีบัก)
       },
       'insights': {
         'avgTasksPerDay': weekTasks / 7,
@@ -440,8 +463,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container
-                (
+                Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: (metric['color'] as Color).withOpacity(0.1),
@@ -477,8 +499,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                 children: [
                   TweenAnimationBuilder<int>(
                     duration: const Duration(milliseconds: 1000),
-                    tween:
-                        IntTween(begin: 0, end: int.parse(metric['value'])),
+                    tween: IntTween(begin: 0, end: int.parse(metric['value'])),
                     builder: (context, animValue, child) {
                       return Text(
                         animValue.toString(),
@@ -520,6 +541,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     final performance = analytics['performance'];
     final productivity = (performance['productivity'] as double);
     final onTimeRate = (performance['onTimeRate'] as double);
+    final hasOnTimeBase = (performance['completedWithKnownTime'] as int) > 0;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -576,10 +598,10 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               ),
               const SizedBox(height: 16),
               _buildProgressIndicator(
-                "onTimeRate".tr,
-                onTimeRate,
+                'onTimeRate'.tr,
+                hasOnTimeBase ? onTimeRate : 0,
                 const Color(0xFF2196F3),
-                "${onTimeRate.toInt()}%",
+                hasOnTimeBase ? "${onTimeRate.toInt()}%" : "N/A",
               ),
             ],
           ),
@@ -773,7 +795,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             sectionsSpace: 2,
             centerSpaceRadius: 30,
             startDegreeOffset: -90,
-            sections: data.where((item) => (item['value'] as int) > 0).map((item) {
+            sections: data.where((item) => (item['value'] as int) > 0).map((
+              item,
+            ) {
               final percentage = (item['value'] as int) / total * 100;
               return PieChartSectionData(
                 color: item['color'] as Color,
@@ -991,9 +1015,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                 }).toList(),
                 isCurved: true,
                 // ✅ กราฟเส้นใช้ธีมแดง
-                gradient: const LinearGradient(
-                  colors: [kPrimary1, kPrimary2],
-                ),
+                gradient: const LinearGradient(colors: [kPrimary1, kPrimary2]),
                 barWidth: 3,
                 isStrokeCapRound: true,
                 belowBarData: BarAreaData(

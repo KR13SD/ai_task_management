@@ -60,7 +60,7 @@ class LocalizationService extends Translations {
       'dialogconfirmstatus': 'คุณต้องการเปลี่ยนสถานะงาน เป็นเสร็จแล้ว หรือไม่?',
       'comfirmdelete': 'ยืนยันการลบงาน',
       'dialogconfirmdelete': 'คุณแน่ใจว่าต้องการลบงาน หรือไม่?',
-      'addnewtask': 'เพิ่ม งาน ใหม่',
+      'addnewtask': 'เพิ่มงานใหม่',
       'taskdetails': 'แก้ไขรายละเอียดงาน',
       'taskname': 'ชื่องาน',
       'settings': 'การตั้งค่า',
@@ -170,7 +170,7 @@ class LocalizationService extends Translations {
       "cannotSaveTask": "ไม่สามารถบันทึก Task ได้",
       "savedMainTaskWithNSubtasks":
           "บันทึก Task หลักพร้อม {{count}} รายการย่อยเรียบร้อยแล้ว ✓",
-
+      'createyourtask': 'สร้าง Task ของคุณ',    
       "jan": "ม.ค.",
       "feb": "ก.พ.",
       "mar": "มี.ค.",
@@ -255,10 +255,11 @@ class LocalizationService extends Translations {
       'cancel': 'Cancel',
       'confirm': 'Confirm',
       'register': 'Register',
+      'delete': 'Delete',
       'email': 'Email',
       'ai-import': 'AI-Import',
       'analytics': 'Analytics',
-      'ai-task-manager': 'AI Task Manager',
+      'ai-task-manager': 'AI Task Management',
       'password': 'Password',
       'todaytasks': 'Today Tasks',
       'taskincoming(3days)': 'Upcoming Tasks (3 Days)',
@@ -302,7 +303,7 @@ class LocalizationService extends Translations {
       'nosubtasks': 'No subtasks yet',
       'guidelinessubtasks': 'Tap "Add" to create a subtask',
       'savetask': 'Save Task',
-      'confirmdeletesubtask': 'do you want to delete this subtask?',
+      'confirmdeletesubtask': 'Do you want to delete this subtask?',
       'hintnametask': 'Enter the name of the task you want to create',
       'inserttaskname': 'Please enter the name of the task',
       'subtaskname': 'Subtask Name',
@@ -497,6 +498,7 @@ class LocalizationService extends Translations {
       "cannotSaveTask": "Unable to save the task",
       "savedMainTaskWithNSubtasks":
           "Saved main task with {{count}} sub-tasks ✓",
+      'createyourtask' : 'Create your task',    
     },
   };
 
