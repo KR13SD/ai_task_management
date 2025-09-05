@@ -9,7 +9,7 @@ class TaskModel {
   final String status;
   final String uid;
   final List<Map<String, dynamic>>? checklist;
-  final String? category;
+  final DateTime? completedAt;
 
   TaskModel({
     required this.id,
@@ -20,7 +20,7 @@ class TaskModel {
     required this.status,
     required this.uid,
     required this.checklist,
-    this.category,
+    this.completedAt
   });
 
   factory TaskModel.fromJson(String id, Map<String, dynamic> json) {
@@ -35,7 +35,9 @@ class TaskModel {
       checklist: json['checklist'] != null
           ? List<Map<String, dynamic>>.from(json['checklist'])
           : [],
-          category: json['category'] ?? 'General',
+      completedAt: json['completedAt'] != null
+          ? (json['completedAt'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -48,7 +50,7 @@ class TaskModel {
       'status': status,
       'uid': uid,
       'checklist': checklist ?? [],
-      'category': category ?? 'General',
+      if (completedAt != null) 'completedAt' : Timestamp.fromDate(completedAt!),
     };
   }
 
@@ -73,7 +75,6 @@ class TaskModel {
       status: status ?? this.status,
       uid: uid ?? this.uid,
       checklist: checklist ?? this.checklist,
-      category: category ?? this.category,
     );
   }
 }

@@ -1,5 +1,8 @@
+import 'package:ai_task_project_manager/pages/auth/login_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tzdata;
@@ -149,12 +152,24 @@ class DashboardController extends GetxController {
   // ✅ อัปเดตสถานะ task
   Future<void> updateTaskStatus(String taskId, String status) async {
     try {
-      await _firestore.collection('tasks').doc(taskId).update({
-        'status': status,
-      });
-    } catch (e) {
+      final update = <String, dynamic>{'status': status};
+
+      if (status == 'done'){
+        update['completedAt'] = FieldValue.serverTimestamp();
+      }
+      else {
+        // update['completedAt'] = FieldValue.delete();
+      }
+
+      await _firestore.collection('tasks').doc(taskId).update(update);
+      Get.snackbar('Success', 'Change task status successfully',
+      backgroundColor: const Color.fromARGB(255, 119, 243, 123),
+      snackPosition: SnackPosition.BOTTOM 
+      );
+    }
+    catch (e) {
       print('Error updating task status: $e');
-      Get.snackbar('Error', 'ไม่สามารถเปลี่ยนสถานะ Task ได้');
+      Get.snackbar('Error', 'Cannot Change task status');
     }
   }
 

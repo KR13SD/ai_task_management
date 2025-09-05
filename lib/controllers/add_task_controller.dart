@@ -85,14 +85,14 @@ class AddTaskController extends GetxController {
           children: [
             Icon(Icons.warning_amber, color: Colors.orange.shade600),
             const SizedBox(width: 8),
-            Text('confirmdeletesu'.tr),
+            Text('comfirmdelete'.tr),
           ],
         ),
         content: Text('confirmdeletesubtask'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('cancle'.tr),
+            child: Text('cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
